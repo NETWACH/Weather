@@ -5,15 +5,11 @@
   <title>NetWatch Weather</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- External CSS -->
   <link rel="stylesheet" href="./styles.css" />
-
-  <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 
 <body>
-  <!-- Ambient FX overlay -->
   <canvas id="wx-fx" class="wx-fx"></canvas>
 
   <div class="wx-app">
@@ -98,7 +94,7 @@
           </div>
         </article>
 
-        <!-- BAROMETER (Highly graphical, animated, functional) -->
+        <!-- BAROMETER -->
         <article class="wx-card wx-card-barometer">
           <header class="wx-card-header">
             <i class="ph-bold ph-gauge"></i>
@@ -110,11 +106,10 @@
               <div class="wx-pressure-gauge" aria-label="Pressure gauge" role="img">
                 <svg class="wx-pressure-svg" viewBox="0 0 120 120" aria-hidden="true">
                   <defs>
-                    <!-- Gradient driven by CSS variables (hue shifts with pressure) -->
                     <linearGradient id="wxArcGrad" x1="0" y1="0" x2="120" y2="120">
-                      <stop offset="0"  stop-color="hsl(var(--wx-p-hue), 95%, 65%)" stop-opacity="0.25"/>
+                      <stop offset="0" stop-color="hsl(var(--wx-p-hue), 95%, 65%)" stop-opacity="0.25"/>
                       <stop offset="0.55" stop-color="hsl(var(--wx-p-hue), 95%, 65%)" stop-opacity="0.95"/>
-                      <stop offset="1"  stop-color="hsl(var(--wx-p-hue), 95%, 65%)" stop-opacity="0.55"/>
+                      <stop offset="1" stop-color="hsl(var(--wx-p-hue), 95%, 65%)" stop-opacity="0.55"/>
                     </linearGradient>
 
                     <filter id="wxGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -131,19 +126,12 @@
                     </filter>
                   </defs>
 
-                  <!-- outer faint ring -->
                   <circle class="wx-pressure-ring" cx="60" cy="60" r="49" />
-
-                  <!-- Track (270° arc) -->
                   <circle class="wx-pressure-track" cx="60" cy="60" r="45" />
 
-                  <!-- Glow arc (behind) -->
                   <circle id="wx-pressure-arc-glow" class="wx-pressure-arc-glow" cx="60" cy="60" r="45" />
-
-                  <!-- Fill arc -->
                   <circle id="wx-pressure-arc" class="wx-pressure-arc" cx="60" cy="60" r="45" />
 
-                  <!-- ticks -->
                   <g class="wx-pressure-ticks" aria-hidden="true">
                     <line x1="60" y1="12" x2="60" y2="18" />
                     <line x1="26" y1="22" x2="30" y2="27" />
@@ -157,7 +145,6 @@
                     <line x1="94" y1="22" x2="90" y2="27" />
                   </g>
 
-                  <!-- labels -->
                   <text class="wx-pressure-label" x="18" y="112">Low</text>
                   <text class="wx-pressure-label" x="88" y="112">High</text>
                 </svg>
@@ -165,7 +152,6 @@
                 <div id="wx-needle" class="wx-barometer-needle"></div>
                 <div id="wx-pressure-dot" class="wx-pressure-dot" aria-hidden="true"></div>
 
-                <!-- center readout -->
                 <div class="wx-pressure-center">
                   <div class="wx-pressure-big" id="wx-pressure-value">--</div>
                   <div class="wx-pressure-sub" id="wx-pressure-trend">Steady</div>
@@ -184,7 +170,6 @@
     </main>
   </div>
 
-  <!-- IMPORTANT -->
   <script type="module" src="./wx-app.js"></script>
 </body>
 </html>
