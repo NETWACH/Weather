@@ -1,27 +1,17 @@
 import { createWXFX } from "./wx-fx.js";
 
-// --- AMBIENT FX (Canvas) ---
 const fx = createWXFX(document.getElementById("wx-fx"));
 
-// --- STATE ---
 let wxUnit = "F";
 let wxData = null;
 let lastPressure = null;
 
-// barometer animation state
-let pressureAnim = {
-  raf: 0,
-  from: null,
-  to: null,
-  start: 0,
-  dur: 900,
-};
+// barometer tween
+let pressureAnim = { raf: 0, from: null, to: null, start: 0, dur: 900 };
 
-// Default: New York
 const DEFAULT_LAT = 40.7128;
 const DEFAULT_LON = -74.0060;
 
-// --- DOM ---
 const el = (id) => document.getElementById(id);
 const els = {
   locate: el("wx-locate"),
@@ -48,7 +38,6 @@ const els = {
 
 const root = document.documentElement;
 
-// --- HELPERS ---
 function getWeatherInfo(code, isDay = 1) {
   const BG_CLEAR_DAY = ["#3b82f6", "#60a5fa"];
   const BG_CLEAR_NIGHT = ["#0f172a", "#1e293b"];
@@ -59,29 +48,29 @@ function getWeatherInfo(code, isDay = 1) {
   const ICON_BASE = "icons/";
 
   const map = {
-    0: { desc: "Clear Sky",     file: isDay ? "day.svg" : "night.svg",                   bg: isDay ? BG_CLEAR_DAY : BG_CLEAR_NIGHT },
-    1: { desc: "Mainly Clear",  file: isDay ? "cloudy-day-1.svg" : "cloudy-night-1.svg", bg: isDay ? BG_CLEAR_DAY : BG_CLEAR_NIGHT },
+    0: { desc: "Clear Sky", file: isDay ? "day.svg" : "night.svg", bg: isDay ? BG_CLEAR_DAY : BG_CLEAR_NIGHT },
+    1: { desc: "Mainly Clear", file: isDay ? "cloudy-day-1.svg" : "cloudy-night-1.svg", bg: isDay ? BG_CLEAR_DAY : BG_CLEAR_NIGHT },
     2: { desc: "Partly Cloudy", file: isDay ? "cloudy-day-1.svg" : "cloudy-night-1.svg", bg: isDay ? BG_CLEAR_DAY : BG_CLEAR_NIGHT },
-    3: { desc: "Overcast",      file: "cloudy.svg",                                      bg: isDay ? BG_CLOUDY_DAY : BG_CLOUDY_NIGHT },
-    45:{ desc: "Fog",           file: "cloudy.svg",                                      bg: BG_CLOUDY_DAY },
-    48:{ desc: "Rime Fog",      file: "cloudy.svg",                                      bg: BG_CLOUDY_DAY },
-    51:{ desc: "Drizzle",       file: "rainy-1.svg",                                     bg: BG_RAIN },
-    53:{ desc: "Drizzle",       file: "rainy-1.svg",                                     bg: BG_RAIN },
-    55:{ desc: "Drizzle",       file: "rainy-1.svg",                                     bg: BG_RAIN },
-    61:{ desc: "Rain",          file: "rainy-4.svg",                                     bg: BG_RAIN },
-    63:{ desc: "Rain",          file: "rainy-4.svg",                                     bg: BG_RAIN },
-    65:{ desc: "Heavy Rain",    file: "rainy-4.svg",                                     bg: BG_RAIN },
-    71:{ desc: "Snow",          file: "snowy-4.svg",                                     bg: BG_RAIN },
-    73:{ desc: "Snow",          file: "snowy-4.svg",                                     bg: BG_RAIN },
-    75:{ desc: "Heavy Snow",    file: "snowy-6.svg",                                     bg: BG_RAIN },
-    80:{ desc: "Showers",       file: "rainy-6.svg",                                     bg: BG_RAIN },
-    81:{ desc: "Showers",       file: "rainy-6.svg",                                     bg: BG_RAIN },
-    82:{ desc: "Showers",       file: "rainy-6.svg",                                     bg: BG_RAIN },
-    85:{ desc: "Snow Showers",  file: "snowy-6.svg",                                     bg: BG_RAIN },
-    86:{ desc: "Snow Showers",  file: "snowy-6.svg",                                     bg: BG_RAIN },
-    95:{ desc: "Thunderstorm",  file: "thunder.svg",                                     bg: BG_STORM },
-    96:{ desc: "Thunderstorm",  file: "thunder.svg",                                     bg: BG_STORM },
-    99:{ desc: "Thunderstorm",  file: "thunder.svg",                                     bg: BG_STORM },
+    3: { desc: "Overcast", file: "cloudy.svg", bg: isDay ? BG_CLOUDY_DAY : BG_CLOUDY_NIGHT },
+    45: { desc: "Fog", file: "cloudy.svg", bg: BG_CLOUDY_DAY },
+    48: { desc: "Rime Fog", file: "cloudy.svg", bg: BG_CLOUDY_DAY },
+    51: { desc: "Drizzle", file: "rainy-1.svg", bg: BG_RAIN },
+    53: { desc: "Drizzle", file: "rainy-1.svg", bg: BG_RAIN },
+    55: { desc: "Drizzle", file: "rainy-1.svg", bg: BG_RAIN },
+    61: { desc: "Rain", file: "rainy-4.svg", bg: BG_RAIN },
+    63: { desc: "Rain", file: "rainy-4.svg", bg: BG_RAIN },
+    65: { desc: "Heavy Rain", file: "rainy-4.svg", bg: BG_RAIN },
+    71: { desc: "Snow", file: "snowy-4.svg", bg: BG_RAIN },
+    73: { desc: "Snow", file: "snowy-4.svg", bg: BG_RAIN },
+    75: { desc: "Heavy Snow", file: "snowy-6.svg", bg: BG_RAIN },
+    80: { desc: "Showers", file: "rainy-6.svg", bg: BG_RAIN },
+    81: { desc: "Showers", file: "rainy-6.svg", bg: BG_RAIN },
+    82: { desc: "Showers", file: "rainy-6.svg", bg: BG_RAIN },
+    85: { desc: "Snow Showers", file: "snowy-6.svg", bg: BG_RAIN },
+    86: { desc: "Snow Showers", file: "snowy-6.svg", bg: BG_RAIN },
+    95: { desc: "Thunderstorm", file: "thunder.svg", bg: BG_STORM },
+    96: { desc: "Thunderstorm", file: "thunder.svg", bg: BG_STORM },
+    99: { desc: "Thunderstorm", file: "thunder.svg", bg: BG_STORM },
   };
 
   const res = map[code] || { desc: "Unknown", file: "weather.svg", bg: BG_CLOUDY_DAY };
@@ -89,19 +78,15 @@ function getWeatherInfo(code, isDay = 1) {
   return res;
 }
 
-function getTemp(celsius) {
-  return wxUnit === "F" ? Math.round((celsius * 9) / 5 + 32) : Math.round(celsius);
+function getTemp(c) {
+  return wxUnit === "F" ? Math.round((c * 9) / 5 + 32) : Math.round(c);
 }
-
-function getWind(speedMph) {
-  return wxUnit === "F"
-    ? `${Math.round(speedMph)} mph`
-    : `${Math.round(speedMph * 1.60934)} km/h`;
+function getWind(mph) {
+  return wxUnit === "F" ? `${Math.round(mph)} mph` : `${Math.round(mph * 1.60934)} km/h`;
 }
 
 function animateNumber(node, to, suffix = "") {
   if (!node) return;
-
   const from = Number(node.dataset.v ?? to);
   node.dataset.v = String(to);
   const start = performance.now();
@@ -116,9 +101,8 @@ function animateNumber(node, to, suffix = "") {
   }
   requestAnimationFrame(tick);
 
-  // pop effect (CSS)
   node.classList.remove("wx-value-pop");
-  void node.offsetWidth; // reflow
+  void node.offsetWidth;
   node.classList.add("wx-value-pop");
   setTimeout(() => node.classList.remove("wx-value-pop"), 180);
 }
@@ -127,18 +111,19 @@ function formatTime(isoString, timezone, options) {
   return new Intl.DateTimeFormat("en-US", { timeZone: timezone, ...options }).format(new Date(isoString));
 }
 
-// --- BAROMETER (highly graphical + animated fill + color) ---
+/* ===== Barometer core ===== */
 function setPressureVisuals(pressure, trend) {
   const minP = 970;
   const maxP = 1040;
   const clamped = Math.max(minP, Math.min(maxP, pressure));
   const ratio = (clamped - minP) / (maxP - minP);
 
-  // hue shifts with pressure (blue->green->orange)
-  const hue = 205 + (1 - ratio) * (35 - 205);
+  // pressure hue mapping (looks clean + dramatic)
+  // low pressure => warmer hue, high pressure => cooler hue
+  const hue = Math.round(25 + ratio * (210 - 25));
 
   root.style.setProperty("--wx-p-ratio", String(ratio));
-  root.style.setProperty("--wx-p-hue", String(Math.round(hue)));
+  root.style.setProperty("--wx-p-hue", String(hue));
 
   document.body.classList.toggle("wx-p-rising", trend === "rising");
   document.body.classList.toggle("wx-p-falling", trend === "falling");
@@ -155,14 +140,10 @@ function updateBarometerInstant(pressure) {
   const maxDeg = 45;
   const deg = minDeg + ratio * (maxDeg - minDeg);
 
-  if (els.needle) {
-    els.needle.style.transform = `translate(-50%, -50%) rotate(${deg}deg)`;
-  }
+  if (els.needle) els.needle.style.transform = `translate(-50%, -50%) rotate(${deg}deg)`;
 
-  // Arc fill (270° track: dash length = 212)
   const arcLen = 212;
   const offset = (1 - ratio) * arcLen;
-
   if (els.pressureArc) els.pressureArc.style.strokeDashoffset = `${offset}`;
   if (els.pressureArcGlow) els.pressureArcGlow.style.strokeDashoffset = `${offset}`;
 
@@ -218,12 +199,12 @@ function updateBarometer(pressure) {
   pressureAnim.raf = requestAnimationFrame(step);
 }
 
-// --- MAIN RENDER ---
-function render(document.body.style.setProperty("--wx-wind", String(curr.windspeed || 0));
-) {
+/* ===== Render ===== */
+function render() {
   if (!wxData) return;
 
   const { current_weather: curr, hourly, daily, timezone } = wxData;
+
   const info = getWeatherInfo(curr.weathercode, curr.is_day);
 
   els.location.textContent = wxData.locationName || "Local weather";
@@ -231,7 +212,9 @@ function render(document.body.style.setProperty("--wx-wind", String(curr.windspe
   els.conditionIconContainer.innerHTML = `<img src="${info.path}" alt="${info.desc}" class="wx-icon-hero">`;
 
   animateNumber(els.currentTemp, getTemp(curr.temperature), "°");
+
   els.wind.textContent = `Wind: ${getWind(curr.windspeed)}`;
+  document.body.style.setProperty("--wx-wind", String(curr.windspeed || 0));
 
   root.style.setProperty("--wx-bg-top", info.bg[0]);
   root.style.setProperty("--wx-bg-bottom", info.bg[1]);
@@ -258,7 +241,7 @@ function render(document.body.style.setProperty("--wx-wind", String(curr.windspe
   const precipProb = hourly.precipitation_probability[idx] ?? 0;
   els.precip.textContent = `Precip: ${precipProb}%`;
 
-  // Ambient FX
+  // FX
   const code = curr.weathercode;
   const isFog = code >= 45 && code <= 48;
   const isSnow = (code >= 71 && code <= 77) || (code >= 85 && code <= 86);
@@ -271,68 +254,63 @@ function render(document.body.style.setProperty("--wx-wind", String(curr.windspe
     intensity: Math.max(0, Math.min(1, precipProb / 100)),
   });
 
-  const hi = daily.temperature_2m_max[0];
-  const lo = daily.temperature_2m_min[0];
-  els.hiLo.textContent = `H:${getTemp(hi)}° L:${getTemp(lo)}°`;
+  // High/Low
+  els.hiLo.textContent = `H:${getTemp(daily.temperature_2m_max[0])}° L:${getTemp(daily.temperature_2m_min[0])}°`;
 
-  // Hourly
+  // Hourly HTML
   let hourlyHTML = "";
   for (let i = idx; i < idx + 24 && i < hourly.time.length; i++) {
-    const hCode = hourly.weathercode[i];
-    const hDay = hourly.is_day[i];
-    const hTemp = hourly.temperature_2m[i];
+    const hInfo = getWeatherInfo(hourly.weathercode[i], hourly.is_day[i]);
     const hTime = formatTime(hourly.time[i], timezone, { hour: "numeric" });
-    const hInfo = getWeatherInfo(hCode, hDay);
 
     hourlyHTML += `
       <div class="wx-hourly-item">
         <span class="wx-hourly-item-time">${i === idx ? "Now" : hTime}</span>
         <img src="${hInfo.path}" alt="${hInfo.desc}" class="wx-hourly-item-icon">
-        <span class="wx-hourly-item-temp">${getTemp(hTemp)}°</span>
+        <span class="wx-hourly-item-temp">${getTemp(hourly.temperature_2m[i])}°</span>
       </div>
     `;
   }
   els.hourly.innerHTML = hourlyHTML;
 
-  // Daily
+  // Daily HTML
   let dailyHTML = "";
   for (let i = 0; i < 7 && i < daily.time.length; i++) {
-    const dCode = daily.weathercode[i];
-    const dMax = daily.temperature_2m_max[i];
-    const dMin = daily.temperature_2m_min[i];
+    const dInfo = getWeatherInfo(daily.weathercode[i], 1);
     const dLabel = i === 0 ? "Today" : formatTime(daily.time[i], timezone, { weekday: "long" });
-    const dInfo = getWeatherInfo(dCode, 1);
 
     dailyHTML += `
       <div class="wx-daily-row">
         <span class="wx-daily-label">${dLabel}</span>
         <img src="${dInfo.path}" alt="${dInfo.desc}" class="wx-daily-icon">
         <div class="wx-daily-temps">
-          <span>${getTemp(dMax)}°</span>
-          <span>${getTemp(dMin)}°</span>
+          <span>${getTemp(daily.temperature_2m_max[i])}°</span>
+          <span>${getTemp(daily.temperature_2m_min[i])}°</span>
         </div>
       </div>
     `;
   }
   els.daily.innerHTML = dailyHTML;
 
-  // Barometer (surface_pressure or pressure_msl)
+  // Pressure
   const pres = hourly.surface_pressure?.[idx] ?? hourly.pressure_msl?.[idx];
   if (pres != null) updateBarometer(pres);
 
   // Radar
   els.radarLink.href = `https://www.windy.com/?${wxData.latitude},${wxData.longitude},10`;
+
+  // Mark loaded (releases blur/opacity gating)
+  document.body.classList.add("wx-loaded");
 }
 
-// --- API FETCH ---
+/* ===== Fetch ===== */
 async function getLocationViaIP() {
   try {
     const res = await fetch("https://ipwho.is/", { cache: "no-store" });
     const data = await res.json();
     if (!data.success) return null;
     return { lat: data.latitude, lon: data.longitude, name: `${data.city}, ${data.country_code}` };
-  } catch (e) {
-    console.warn("IP lookup failed", e);
+  } catch {
     return null;
   }
 }
@@ -347,21 +325,20 @@ async function loadWeather(useGeo) {
 
   let foundLocation = null;
 
+  // Fast geo attempt (won't hang forever)
   if (useGeo && navigator.geolocation) {
     try {
       const pos = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 7000 });
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3500 });
       });
       foundLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude, name: "My Location" };
-    } catch (e) {
-      console.warn("GPS denied/timeout. Trying IP...", e);
-    }
+    } catch {}
   }
 
   if (!foundLocation) {
     const ipLoc = await getLocationViaIP();
     if (ipLoc) foundLocation = ipLoc;
-    else name = "New York (Default)";
+    else name = "New York (Fallback)";
   }
 
   if (foundLocation) {
@@ -393,7 +370,7 @@ async function loadWeather(useGeo) {
   }
 }
 
-// --- EVENTS ---
+/* ===== Events ===== */
 function setUnit(u) {
   wxUnit = u;
   els.unitF.classList.toggle("active", u === "F");
@@ -405,10 +382,8 @@ els.unitF.onclick = () => setUnit("F");
 els.unitC.onclick = () => setUnit("C");
 els.locate.onclick = () => loadWeather(true);
 
-// Init
 loadWeather(true);
 
-// Refresh when returning to tab
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) loadWeather(false);
 });
