@@ -1,4 +1,12 @@
-import { createWXFX } from "./wx-fx.js";
+import // ---- Performance / Calm Mode ----
+const prefersReduced =
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+  (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+
+if (prefersReduced) {
+  document.body.classList.add("wx-calm");
+}
+ { createWXFX } from "./wx-fx.js";
 
 const fx = createWXFX(document.getElementById("wx-fx"));
 
