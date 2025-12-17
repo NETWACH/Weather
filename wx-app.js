@@ -1,4 +1,5 @@
 import { createWXFX } from "./wx-fx.js";
+import { WX } from "./wx-core.js"; // Import WX for conversion utilities
 
 const fx = createWXFX(document.getElementById("wx-fx"));
 
@@ -34,10 +35,18 @@ const els = {
   pressureArcGlow: el("wx-pressure-arc-glow"),
   pressureDot: el("wx-pressure-dot"),
   radarLink: el("wx-radar-link"),
+  radarIframe: el("wx-radar-iframe"),
+  alerts: el("wx-alerts"),
+  alertsTitle: el("wx-alerts-title"),
+  alertsBody: el("wx-alerts-body"),
+  alertsClose: el("wx-alerts-close"),
 };
 
 const root = document.documentElement;
 
+/* =========================
+   Weather icons + background
+========================= */
 function getWeatherInfo(code, isDay = 1) {
   const BG_CLEAR_DAY = ["#3b82f6", "#60a5fa"];
   const BG_CLEAR_NIGHT = ["#0f172a", "#1e293b"];
@@ -78,11 +87,24 @@ function getWeatherInfo(code, isDay = 1) {
   return res;
 }
 
-function getTemp(c) {
-  return wxUnit === "F" ? Math.round((c * 9) / 5 + 32) : Math.round(c);
+/* =========================
+   Unit helpers
+========================= */
+function getTemp(celsius) {
+  // Use WX utility to convert raw Celsius value to current unit
+  return WX.convertTemp(celsius, wxUnit);
 }
-function getWind(mph) {
-  return wxUnit === "F" ? `${Math.round(mph)} mph` : `${Math.round(mph * 1.60934)} km/h`;
+function getWind(speedMph) {
+  // Use WX utility to format wind speed
+  return WX.windText(speedMph, wxUnit);
+}
+function getPrecip(mm) {
+    if (mm == null || mm < 0.1) return 'None';
+    if (wxUnit === "F") {
+        // Simple conversion for display in inches
+        return `${(mm / 25.4).toFixed(2)} in`; 
+    }
+    return `${mm.toFixed(1)} mm`;
 }
 
 function animateNumber(node, to, suffix = "") {
@@ -96,11 +118,13 @@ function animateNumber(node, to, suffix = "") {
   function tick(now) {
     const p = Math.min(1, (now - start) / dur);
     const v = from + (to - from) * ease(p);
+    // Ensure we round only the final calculated value
     node.textContent = `${Math.round(v)}${suffix}`;
     if (p < 1) requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
 
+  // Quick animation pulse
   node.classList.remove("wx-value-pop");
   void node.offsetWidth;
   node.classList.add("wx-value-pop");
@@ -111,17 +135,112 @@ function formatTime(isoString, timezone, options) {
   return new Intl.DateTimeFormat("en-US", { timeZone: timezone, ...options }).format(new Date(isoString));
 }
 
-/* ===== Barometer core ===== */
+/* =========================
+   Alerts (heuristic storm-chaser mode)
+========================= */
+function buildAlerts(curr, hourly, idx, timezone) {
+  const alerts = [];
+
+  const code = curr.code ?? 0;
+  const windMph = Number(curr.rawWindSpeed ?? 0); // Use rawWindSpeed from current
+  const pop = Number(hourly.pop?.[idx] ?? 0);
+
+  const at = (hoursFromNow) => {
+    const t = hourly.time?.[Math.min(idx + hoursFromNow, (hourly.time?.length || 1) - 1)];
+    if (!t) return "Now";
+    return formatTime(t, timezone, { hour: "numeric", minute: "2-digit" });
+  };
+
+  const add = (severity, title, detail, when = "Now") => {
+    alerts.push({ severity, title, detail, when });
+  };
+
+  // Thunderstorm / severe (Open-Meteo thunder codes: 95/96/99)
+  if (code >= 95) {
+    add("crit", "Thunderstorm", "Lightning risk. Seek shelter; avoid open areas.", "Now");
+  }
+
+  // Flash-flood-ish heuristic: high POP + rain codes + sustained
+  const isRain = (c) => (c >= 61 && c <= 67) || (c >= 80 && c <= 82) || (c >= 51 && c <= 57);
+  const futurePopMax = Math.max(...(hourly.pop || []).slice(idx, idx + 6).map(Number).filter(Number.isFinite), pop);
+
+  if (isRain(code) && (pop >= 80 || futurePopMax >= 85)) {
+    add("warn", "Heavy Rain Possible", "High precip probability. Watch for ponding and rapid rises.", at(0));
+  }
+
+  // Wind warning heuristic
+  if (windMph >= 35) {
+    add("warn", "High Wind", `Sustained winds near ${Math.round(windMph)} mph. Secure loose objects.`, "Now");
+  } else if (windMph >= 25) {
+    add("watch", "Gusty Winds", `Winds near ${Math.round(windMph)} mph. Choppy driving conditions.`, "Now");
+  }
+
+  // Snow codes
+  const isSnow = (c) => (c >= 71 && c <= 77) || (c >= 85 && c <= 86);
+  if (isSnow(code)) {
+    add("watch", "Snow / Reduced Visibility", "Watch for slick roads and reduced visibility.", "Now");
+  }
+
+  // Pressure trend cue (storm-chaser vibe)
+  const presNow = (hourly.pressure?.[idx]);
+  const presFuture = (hourly.pressure?.[Math.min(idx + 3, (hourly.time?.length || 1) - 1)]);
+  if (Number.isFinite(presNow) && Number.isFinite(presFuture)) {
+    const dp = presFuture - presNow;
+    if (dp <= -3) add("watch", "Falling Pressure", "Pressure dropping fast — conditions may worsen.", at(3));
+  }
+
+  // Sort: crit -> warn -> watch
+  const rank = { crit: 0, warn: 1, watch: 2 };
+  alerts.sort((a, b) => (rank[a.severity] ?? 9) - (rank[b.severity] ?? 9));
+  return alerts;
+}
+
+function renderAlerts(alerts) {
+  if (!els.alerts) return;
+
+  if (!alerts || !alerts.length) {
+    els.alerts.hidden = true;
+    els.alerts.classList.remove("wx-alert-crit", "wx-alert-warn", "wx-alert-watch");
+    return;
+  }
+
+  const top = alerts[0];
+  els.alerts.hidden = false;
+
+  els.alerts.classList.toggle("wx-alert-crit", top.severity === "crit");
+  els.alerts.classList.toggle("wx-alert-warn", top.severity === "warn");
+  els.alerts.classList.toggle("wx-alert-watch", top.severity === "watch");
+
+  if (els.alertsTitle) {
+    els.alertsTitle.textContent =
+      top.severity === "crit" ? "Severe Alert" : top.severity === "warn" ? "Warning" : "Watch / Advisory";
+  }
+
+  if (els.alertsBody) {
+    els.alertsBody.innerHTML = alerts.map(a => `
+      <div class="wx-alert-item">
+        <div class="wx-alert-dot"></div>
+        <div>
+          <div class="wx-alert-main">${a.title}</div>
+          <div class="wx-alert-sub">${a.detail}</div>
+        </div>
+        <div class="wx-alert-time">${a.when}</div>
+      </div>
+    `).join("");
+  }
+}
+
+/* =========================
+   Barometer
+========================= */
+// ... (Barometer functions: setPressureVisuals, updateBarometerInstant, updateBarometer - kept as is)
 function setPressureVisuals(pressure, trend) {
   const minP = 970;
   const maxP = 1040;
   const clamped = Math.max(minP, Math.min(maxP, pressure));
   const ratio = (clamped - minP) / (maxP - minP);
 
-  // pressure hue mapping (looks clean + dramatic)
-  // low pressure => warmer hue, high pressure => cooler hue
   const hue = Math.round(25 + ratio * (210 - 25));
-
   root.style.setProperty("--wx-p-ratio", String(ratio));
   root.style.setProperty("--wx-p-hue", String(hue));
 
@@ -175,8 +294,7 @@ function updateBarometer(pressure) {
   lastPressure = pressure;
 
   if (els.pressureTrend) {
-    els.pressureTrend.textContent =
-      trend === "stable" ? "Stable" : trend === "rising" ? "Rising" : "Falling";
+    els.pressureTrend.textContent = trend === "stable" ? "Stable" : trend === "rising" ? "Rising" : "Falling";
   }
 
   setPressureVisuals(pressure, trend);
@@ -189,7 +307,6 @@ function updateBarometer(pressure) {
   cancelAnimationFrame(pressureAnim.raf);
 
   const ease = (p) => 1 - Math.pow(1 - p, 3);
-
   function step(now) {
     const p = Math.min(1, (now - pressureAnim.start) / pressureAnim.dur);
     const v = pressureAnim.from + (pressureAnim.to - pressureAnim.from) * ease(p);
@@ -198,28 +315,53 @@ function updateBarometer(pressure) {
   }
   pressureAnim.raf = requestAnimationFrame(step);
 }
+/* =========================
+   Daily Forecast Interactivity
+========================= */
+function toggleDailyDetail(event) {
+  const item = event.target.closest(".wx-daily-item");
+  if (!item) return;
 
-/* ===== Render ===== */
+  if (item.classList.contains("open")) {
+    item.classList.remove("open");
+    return;
+  }
+
+  document.querySelectorAll(".wx-daily-item.open").forEach(other => {
+    other.classList.remove("open");
+  });
+
+  item.classList.add("open");
+}
+
+/* =========================
+   Render
+========================= */
 function render() {
   if (!wxData) return;
+  
+  // Use the nested object structure to access raw data
+  const curr = wxData.current || {};
+  const hourly = wxData.hourly || {};
+  const daily = wxData.daily || {};
+  const timezone = wxData.tz;
 
-  const { current_weather: curr, hourly, daily, timezone } = wxData;
-
-  const info = getWeatherInfo(curr.weathercode, curr.is_day);
+  const info = getWeatherInfo(curr.code, curr.isDay);
 
   els.location.textContent = wxData.locationName || "Local weather";
   els.conditionText.textContent = info.desc;
   els.conditionIconContainer.innerHTML = `<img src="${info.path}" alt="${info.desc}" class="wx-icon-hero">`;
 
-  animateNumber(els.currentTemp, getTemp(curr.temperature), "°");
-
-  els.wind.textContent = `Wind: ${getWind(curr.windspeed)}`;
-  document.body.style.setProperty("--wx-wind", String(curr.windspeed || 0));
-
+  // FIX: Use rawTemp for conversion
+  animateNumber(els.currentTemp, getTemp(curr.rawTemp), "°");
+  
+  // FIX: Use rawWindSpeed for conversion
+  els.wind.textContent = `Wind: ${getWind(curr.rawWindSpeed)}`; 
+  
   root.style.setProperty("--wx-bg-top", info.bg[0]);
   root.style.setProperty("--wx-bg-bottom", info.bg[1]);
 
-  // timezone-aware "now" index
+  // timezone-aware "now" index (logic remains the same)
   const now = new Date();
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: timezone,
@@ -235,14 +377,17 @@ function render() {
   let idx = hourly.time.findIndex((t) => t.startsWith(key));
   if (idx === -1) idx = 0;
 
-  const feelsC = hourly.apparent_temperature[idx];
-  els.feelsLike.textContent = `Feels like ${getTemp(feelsC)}°`;
+  // FIX: Use rawFeels for conversion
+  els.feelsLike.textContent = `Feels like ${getTemp(hourly.rawFeels[idx])}°`;
 
-  const precipProb = hourly.precipitation_probability[idx] ?? 0;
+  const precipProb = hourly.pop[idx] ?? 0;
   els.precip.textContent = `Precip: ${precipProb}%`;
 
-  // FX
-  const code = curr.weathercode;
+  // Alerts
+  renderAlerts(buildAlerts(curr, hourly, idx, timezone));
+
+  // Ambient FX (logic remains the same)
+  const code = curr.code;
   const isFog = code >= 45 && code <= 48;
   const isSnow = (code >= 71 && code <= 77) || (code >= 85 && code <= 86);
   const isRain = (code >= 51 && code <= 67) || (code >= 80 && code <= 82) || code >= 95;
@@ -250,60 +395,97 @@ function render() {
 
   fx.set({
     mode,
-    windMph: Number(curr.windspeed || 0),
-    intensity: Math.max(0, Math.min(1, precipProb / 100)),
+    windMph: Number(curr.rawWindSpeed || 0),
+    intensity: Math.max(0, Math.min(1, (precipProb ?? 0) / 100)),
   });
 
-  // High/Low
-  els.hiLo.textContent = `H:${getTemp(daily.temperature_2m_max[0])}° L:${getTemp(daily.temperature_2m_min[0])}°`;
+  // FIX: Use rawHi/rawLo for conversion
+  els.hiLo.textContent = `H:${getTemp(daily.rawHi[0])}° L:${getTemp(daily.rawLo[0])}°`;
 
-  // Hourly HTML
+  // Hourly (Next 24h)
+  els.hourly.innerHTML = "";
   let hourlyHTML = "";
   for (let i = idx; i < idx + 24 && i < hourly.time.length; i++) {
-    const hInfo = getWeatherInfo(hourly.weathercode[i], hourly.is_day[i]);
+    const hInfo = getWeatherInfo(hourly.code[i], hourly.isDay[i]);
     const hTime = formatTime(hourly.time[i], timezone, { hour: "numeric" });
 
     hourlyHTML += `
       <div class="wx-hourly-item">
         <span class="wx-hourly-item-time">${i === idx ? "Now" : hTime}</span>
         <img src="${hInfo.path}" alt="${hInfo.desc}" class="wx-hourly-item-icon">
-        <span class="wx-hourly-item-temp">${getTemp(hourly.temperature_2m[i])}°</span>
+        <span class="wx-hourly-item-temp">${getTemp(hourly.rawTemp[i])}°</span>
       </div>
     `;
   }
   els.hourly.innerHTML = hourlyHTML;
 
-  // Daily HTML
+  // Daily (7 days)
   let dailyHTML = "";
   for (let i = 0; i < 7 && i < daily.time.length; i++) {
-    const dInfo = getWeatherInfo(daily.weathercode[i], 1);
+    const dInfo = getWeatherInfo(daily.code[i], 1);
     const dLabel = i === 0 ? "Today" : formatTime(daily.time[i], timezone, { weekday: "long" });
 
+    const maxWind = daily.rawWindMax[i] || 0;
+    const precipSum = daily.precipSum[i] || 0;
+    const uvMax = daily.uvMax[i] || 0;
+
     dailyHTML += `
-      <div class="wx-daily-row">
-        <span class="wx-daily-label">${dLabel}</span>
-        <img src="${dInfo.path}" alt="${dInfo.desc}" class="wx-daily-icon">
-        <div class="wx-daily-temps">
-          <span>${getTemp(daily.temperature_2m_max[i])}°</span>
-          <span>${getTemp(daily.temperature_2m_min[i])}°</span>
+      <div class="wx-daily-item" data-index="${i}">
+        <div class="wx-daily-row">
+          <span class="wx-daily-label">${dLabel}</span>
+          <img src="${dInfo.path}" alt="${dInfo.desc}" class="wx-daily-icon">
+          <div class="wx-daily-temps">
+            <span>${getTemp(daily.rawHi[i])}°</span>
+            <span>${getTemp(daily.rawLo[i])}°</span>
+          </div>
+        </div>
+        <div class="wx-daily-details">
+          <div>Max Wind: <strong>${getWind(maxWind)}</strong></div>
+          <div>UV Index Max: <strong>${Math.round(uvMax)}</strong></div>
+          <div>Precipitation: <strong>${getPrecip(precipSum)}</strong></div>
+          <div>Condition: <strong>${dInfo.desc}</strong></div>
         </div>
       </div>
     `;
   }
   els.daily.innerHTML = dailyHTML;
+  
+  els.daily.removeEventListener("click", toggleDailyDetail); 
+  els.daily.addEventListener("click", toggleDailyDetail);
+
 
   // Pressure
-  const pres = hourly.surface_pressure?.[idx] ?? hourly.pressure_msl?.[idx];
+  const pres = hourly.pressure?.[idx];
   if (pres != null) updateBarometer(pres);
 
-  // Radar
-  els.radarLink.href = `https://www.windy.com/?${wxData.latitude},${wxData.longitude},10`;
+  // Radar (logic remains the same)
+  const lat = wxData.lat ?? DEFAULT_LAT;
+  const lon = wxData.lon ?? DEFAULT_LON;
 
-  // Mark loaded (releases blur/opacity gating)
-  document.body.classList.add("wx-loaded");
+  if (els.radarIframe) {
+    const zoom = 7; 
+    const unitsWind = wxUnit === "F" ? "mph" : "kt";
+    const unitsTemp = wxUnit === "F" ? "F" : "C";
+    const src =
+      `https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}` +
+      `&detailLat=${lat}&detailLon=${lon}` +
+      `&width=650&height=450&zoom=${zoom}` +
+      `&level=surface&overlay=radar&product=radar&menu=&message=true` +
+      `&marker=true&calendar=now&type=map&location=coordinates` +
+      `&metricWind=${unitsWind}&metricTemp=${unitsTemp}&radarRange=-1`;
+
+    if (els.radarIframe.dataset.src !== src) {
+      els.radarIframe.dataset.src = src;
+      els.radarIframe.src = src;
+    }
+  }
+
+  if (els.radarLink) els.radarLink.href = `https://www.windy.com/?${lat},${lon},10`;
 }
 
-/* ===== Fetch ===== */
+/* =========================
+   Fetch
+========================= */
 async function getLocationViaIP() {
   try {
     const res = await fetch("https://ipwho.is/", { cache: "no-store" });
@@ -325,7 +507,7 @@ async function loadWeather(useGeo) {
 
   let foundLocation = null;
 
-  // Fast geo attempt (won't hang forever)
+  // 1) Browser geolocation
   if (useGeo && navigator.geolocation) {
     try {
       const pos = await new Promise((resolve, reject) => {
@@ -335,6 +517,7 @@ async function loadWeather(useGeo) {
     } catch {}
   }
 
+  // 2) IP fallback
   if (!foundLocation) {
     const ipLoc = await getLocationViaIP();
     if (ipLoc) foundLocation = ipLoc;
@@ -346,42 +529,45 @@ async function loadWeather(useGeo) {
     lon = foundLocation.lon;
     name = foundLocation.name;
   }
-
-  const url =
-    `https://api.open-meteo.com/v1/forecast` +
-    `?latitude=${lat}` +
-    `&longitude=${lon}` +
-    `&current_weather=true` +
-    `&hourly=temperature_2m,apparent_temperature,precipitation_probability,weathercode,surface_pressure,pressure_msl,is_day` +
-    `&daily=weathercode,temperature_2m_max,temperature_2m_min` +
-    `&windspeed_unit=mph` +
-    `&timezone=auto`;
-
-  try {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error("API Error");
-    const data = await res.json();
-    wxData = { ...data, locationName: name };
+  
+  const fetchedData = await WX.fetchOpenMeteo({ lat, lon, unit: wxUnit });
+  
+  if (fetchedData) {
+    wxData = { ...fetchedData, locationName: name };
     render();
-  } catch (err) {
-    console.error(err);
+  } else {
     els.location.textContent = "Connection Error";
     els.conditionText.textContent = "Failed to fetch weather";
+    renderAlerts([]);
   }
 }
 
-/* ===== Events ===== */
+/* =========================
+   Events
+========================= */
 function setUnit(u) {
   wxUnit = u;
-  els.unitF.classList.toggle("active", u === "F");
-  els.unitC.classList.toggle("active", u === "C");
-  render();
+  els.unitF?.classList.toggle("active", u === "F");
+  els.unitC?.classList.toggle("active", u === "C");
+  
+  // Since all data is stored as raw Celsius, we can just re-render immediately.
+  // We only need to reload if the data is stale or if the initial load failed.
+  if (wxData) {
+    render();
+  } else {
+    loadWeather(false);
+  }
 }
 
-els.unitF.onclick = () => setUnit("F");
-els.unitC.onclick = () => setUnit("C");
-els.locate.onclick = () => loadWeather(true);
+els.unitF?.addEventListener("click", () => setUnit("F"));
+els.unitC?.addEventListener("click", () => setUnit("C"));
+els.locate?.addEventListener("click", () => loadWeather(true));
 
+els.alertsClose?.addEventListener("click", () => {
+  if (els.alerts) els.alerts.hidden = true;
+});
+
+// Init
 loadWeather(true);
 
 document.addEventListener("visibilitychange", () => {

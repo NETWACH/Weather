@@ -5,12 +5,16 @@
   <title>NetWatch Weather</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- External CSS -->
   <link rel="stylesheet" href="./styles.css" />
+
+  <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 
 <body>
-  <canvas id="wx-fx" class="wx-fx"></canvas>
+  <!-- Ambient FX overlay -->
+  <canvas id="wx-fx" style="position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.55"></canvas>
 
   <div class="wx-app">
     <header class="wx-header">
@@ -28,6 +32,7 @@
     </header>
 
     
+    <!-- ALERTS (auto-populated) -->
     <section id="wx-alerts" class="wx-alerts" hidden>
       <div class="wx-alerts-bar">
         <div class="wx-alerts-left">
@@ -79,7 +84,7 @@
           </header>
           <div id="wx-hourly" class="wx-hourly-list">
             <div class="wx-hourly-item">
-              <div class="loading-pulse wx-skel-ball"></div>
+              <div class="loading-pulse" style="width:40px;height:40px;background:white;opacity:0.2;border-radius:50%"></div>
             </div>
           </div>
         </article>
@@ -115,69 +120,35 @@
             <i class="ph-bold ph-gauge"></i>
             <h2>Pressure</h2>
           </header>
-
           <div class="wx-barometer">
-            <div class="wx-pressure-wrap">
-              <div class="wx-pressure-gauge" aria-label="Pressure gauge" role="img">
-                <svg class="wx-pressure-svg" viewBox="0 0 120 120" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="wxArcGrad" x1="0" y1="0" x2="120" y2="120">
-                      <stop offset="0" stop-color="hsl(var(--wx-p-hue), 95%, 65%)" stop-opacity="0.25"/>
-                      <stop offset="0.55" stop-color="hsl(var(--wx-p-hue), 95%, 65%)" stop-opacity="0.95"/>
-                      <stop offset="1" stop-color="hsl(var(--wx-p-hue), 95%, 65%)" stop-opacity="0.55"/>
-                    </linearGradient>
+            <div class="wx-pressure-gauge" aria-label="Pressure gauge" role="img">
+              <svg class="wx-pressure-svg" viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="wx-pressure-track" cx="60" cy="60" r="45" />
+                <circle id="wx-pressure-arc-glow" class="wx-pressure-arc-glow" cx="60" cy="60" r="45" />
+                <circle id="wx-pressure-arc" class="wx-pressure-arc" cx="60" cy="60" r="45" />
+                <g class="wx-pressure-ticks" aria-hidden="true">
+                  <line x1="60" y1="12" x2="60" y2="18" />
+                  <line x1="26" y1="22" x2="30" y2="27" />
+                  <line x1="12" y1="46" x2="18" y2="48" />
+                  <line x1="12" y1="74" x2="18" y2="72" />
+                  <line x1="26" y1="98" x2="30" y2="93" />
+                  <line x1="60" y1="108" x2="60" y2="102" />
+                  <line x1="94" y1="98" x2="90" y2="93" />
+                  <line x1="108" y1="74" x2="102" y2="72" />
+                  <line x1="108" y1="46" x2="102" y2="48" />
+                  <line x1="94" y1="22" x2="90" y2="27" />
+                </g>
+                <text class="wx-pressure-label" x="20" y="110">Low</text>
+                <text class="wx-pressure-label" x="92" y="110">High</text>
+              </svg>
 
-                    <filter id="wxGlow" x="-50%" y="-50%" width="200%" height="200%">
-                      <feGaussianBlur stdDeviation="2.4" result="blur"/>
-                      <feColorMatrix type="matrix"
-                        values="1 0 0 0 0
-                                0 1 0 0 0
-                                0 0 1 0 0
-                                0 0 0 0.85 0" />
-                      <feMerge>
-                        <feMergeNode in="blur"/>
-                        <feMergeNode in="SourceGraphic"/>
-                      </feMerge>
-                    </filter>
-                  </defs>
+              <div id="wx-needle" class="wx-barometer-needle"></div>
+              <div id="wx-pressure-dot" class="wx-pressure-dot" aria-hidden="true"></div>
+            </div>
 
-                  <circle class="wx-pressure-ring" cx="60" cy="60" r="49" />
-                  <circle class="wx-pressure-track" cx="60" cy="60" r="45" />
-
-                  <circle id="wx-pressure-arc-glow" class="wx-pressure-arc-glow" cx="60" cy="60" r="45" />
-                  <circle id="wx-pressure-arc" class="wx-pressure-arc" cx="60" cy="60" r="45" />
-
-                  <g class="wx-pressure-ticks" aria-hidden="true">
-                    <line x1="60" y1="12" x2="60" y2="18" />
-                    <line x1="26" y1="22" x2="30" y2="27" />
-                    <line x1="12" y1="46" x2="18" y2="48" />
-                    <line x1="12" y1="74" x2="18" y2="72" />
-                    <line x1="26" y1="98" x2="30" y2="93" />
-                    <line x1="60" y1="108" x2="60" y2="102" />
-                    <line x1="94" y1="98" x2="90" y2="93" />
-                    <line x1="108" y1="74" x2="102" y2="72" />
-                    <line x1="108" y1="46" x2="102" y2="48" />
-                    <line x1="94" y1="22" x2="90" y2="27" />
-                  </g>
-
-                  <text class="wx-pressure-label" x="18" y="112">Low</text>
-                  <text class="wx-pressure-label" x="88" y="112">High</text>
-                </svg>
-
-                <div id="wx-needle" class="wx-barometer-needle"></div>
-                <div id="wx-pressure-dot" class="wx-pressure-dot" aria-hidden="true"></div>
-
-                <div class="wx-pressure-center">
-                  <div class="wx-pressure-big" id="wx-pressure-value">--</div>
-                  <div class="wx-pressure-sub" id="wx-pressure-trend">Steady</div>
-                </div>
-              </div>
-
-              <div class="wx-pressure-legend" aria-hidden="true">
-                <span class="z z-low">Low</span>
-                <span class="z z-mid">Normal</span>
-                <span class="z z-high">High</span>
-              </div>
+            <div class="wx-barometer-info">
+              <div id="wx-pressure-value" class="wx-barometer-value">--</div>
+              <div id="wx-pressure-trend" class="wx-barometer-trend">Steady</div>
             </div>
           </div>
         </article>
@@ -185,6 +156,7 @@
     </main>
   </div>
 
+  <!-- JS (module) -->
   <script type="module" src="./wx-app.js"></script>
 </body>
 </html>

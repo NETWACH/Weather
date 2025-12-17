@@ -113,8 +113,17 @@ export const WX = (() => {
   /* ---------------- FETCH + NORMALIZE ---------------- */
 
   function cToF(c) { return (c * 9) / 5 + 32; }
-  function convertTemp(c, unit) { return unit === "F" ? Math.round(cToF(c)) : Math.round(c); }
-  function windText(mph, unit) { return unit === "F" ? `${Math.round(mph)} mph` : `${Math.round(mph * 1.60934)} km/h`; }
+  
+  // Conversion utility exposed for wx-app.js to use during rendering
+  function convertTemp(c, unit) { 
+    if (typeof c !== 'number' || isNaN(c)) return '--';
+    return unit === "F" ? Math.round(cToF(c)) : Math.round(c); 
+  }
+  
+  function windText(mph, unit) { 
+    if (typeof mph !== 'number' || isNaN(mph)) return '--';
+    return unit === "F" ? `${Math.round(mph)} mph` : `${Math.round(mph * 1.60934)} km/h`; 
+  }
 
   async function fetchOpenMeteo({ lat, lon, unit = "F" }) {
     const url =
@@ -123,8 +132,8 @@ export const WX = (() => {
       `&longitude=${lon}` +
       `&current_weather=true` +
       `&hourly=temperature_2m,apparent_temperature,precipitation_probability,weathercode,is_day,surface_pressure,pressure_msl` +
-      `&daily=temperature_2m_max,temperature_2m_min,weathercode` +
-      `&windspeed_unit=mph` +
+      `&daily=temperature_2m_max,temperature_2m_min,weathercode,uv_index_max,precipitation_sum,windspeed_10m_max` + 
+      `&windspeed_unit=mph` + // Keep windspeed in MPH as a base unit
       `&timezone=auto`;
 
     const res = await fetch(url, { cache: "no-store" });
@@ -132,7 +141,6 @@ export const WX = (() => {
     const j = await res.json();
 
     const cw = j.current_weather || {};
-
     const hourly = j.hourly || {};
     const daily = j.daily || {};
 
@@ -144,14 +152,17 @@ export const WX = (() => {
       current: {
         code: cw.weathercode ?? 0,
         isDay: !!cw.is_day,
-        temp: convertTemp(cw.temperature ?? 0, unit),
+        // Store raw temperature (C)
+        rawTemp: cw.temperature ?? 0, 
         wind: windText(cw.windspeed ?? 0, unit),
+        rawWindSpeed: cw.windspeed ?? 0,
       },
 
       hourly: {
         time: hourly.time || [],
-        temp: (hourly.temperature_2m || []).map((c) => convertTemp(c, unit)),
-        feels: (hourly.apparent_temperature || []).map((c) => convertTemp(c, unit)),
+        // Store raw temperature arrays (C)
+        rawTemp: hourly.temperature_2m || [],
+        rawFeels: hourly.apparent_temperature || [],
         pop: hourly.precipitation_probability || [],
         code: hourly.weathercode || [],
         isDay: hourly.is_day || [],
@@ -160,9 +171,13 @@ export const WX = (() => {
 
       daily: {
         time: daily.time || [],
-        hi: (daily.temperature_2m_max || []).map((c) => convertTemp(c, unit)),
-        lo: (daily.temperature_2m_min || []).map((c) => convertTemp(c, unit)),
+        // Store raw temperature arrays (C)
+        rawHi: daily.temperature_2m_max || [],
+        rawLo: daily.temperature_2m_min || [],
         code: daily.weathercode || [],
+        uvMax: daily.uv_index_max || [], 
+        precipSum: daily.precipitation_sum || [], 
+        rawWindMax: daily.windspeed_10m_max || [],
       },
     };
   }
@@ -217,5 +232,7 @@ export const WX = (() => {
     formatWeekday,
     hourIndexNow,
     nextChangeInsight,
+    convertTemp, // Exported utility
+    windText,    // Exported utility
   };
 })();
