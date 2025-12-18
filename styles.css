@@ -174,6 +174,61 @@ body {
 .wx-icon-hero { width: 32px; height: 32px; object-fit: contain; }
 
 .wx-hero-temp-row { margin-block: 1rem; }
+
+.wx-hero-temp-wrap{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  flex-wrap:wrap;
+}
+
+.wx-gauges{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+.wx-gauge{
+  position:relative;
+  width:140px;
+  height:140px;
+  border-radius:50%;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  padding:12px;
+
+  background: rgba(0, 212, 255, 0.06);
+  border: 1px solid rgba(0, 212, 255, 0.25);
+  box-shadow:
+    inset 0 0 25px rgba(0, 212, 255, 0.06),
+    0 0 16px rgba(0,0,0,0.35);
+  backdrop-filter: blur(8px);
+}
+
+.wx-gauge::after{
+  content:"";
+  position:absolute;
+  top:-2px; left:-2px; right:-2px; bottom:-2px;
+  border-radius:50%;
+  border:2px solid rgba(0, 212, 255, 0.85);
+  clip-path: inset(0 0 70% 0);
+  filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.75));
+  pointer-events:none;
+}
+
+.wx-gauge-icon{ font-size:1.35rem; margin-bottom:6px; }
+.wx-gauge-value{ font-size:2.0rem; font-weight:200; color:#fff; line-height:1; }
+.wx-gauge-unit{ font-size:0.8rem; opacity:0.65; margin-top:4px; }
+.wx-gauge-label{ font-size:0.7rem; text-transform:uppercase; letter-spacing:2px; color: rgba(0, 212, 255, 0.8); margin-top:6px; }
+
+@media (max-width: 520px){
+  .wx-gauge{ width:128px; height:128px; }
+  .wx-hero-temp{ font-size:5rem; }
+}
+
 .wx-hero-temp {
   font-size: 6rem;
   font-weight: 200;

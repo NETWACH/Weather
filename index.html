@@ -54,7 +54,39 @@
           </div>
 
           <div class="wx-hero-temp-row">
-            <div id="wx-current-temp" class="wx-hero-temp">--°</div>
+            <div class="wx-hero-temp-wrap">
+              <div id="wx-current-temp" class="wx-hero-temp">--°</div>
+
+              <div class="wx-gauges" aria-label="Current conditions gauges">
+                <div class="wx-gauge" title="Wind">
+                  <div class="wx-gauge-icon">🧭</div>
+                  <div class="wx-gauge-value"><span id="wx-g-wind">--</span></div>
+                  <div class="wx-gauge-unit" id="wx-g-wind-unit">mph</div>
+                  <div class="wx-gauge-label" id="wx-g-wind-label">Wind</div>
+                </div>
+
+                <div class="wx-gauge" title="Pressure">
+                  <div class="wx-gauge-icon">⏲️</div>
+                  <div class="wx-gauge-value"><span id="wx-g-pressure">----</span></div>
+                  <div class="wx-gauge-unit" id="wx-g-pressure-unit">hPa</div>
+                  <div class="wx-gauge-label">Pressure</div>
+                </div>
+
+                <div class="wx-gauge" title="Minutes until sunset">
+                  <div class="wx-gauge-icon">☀️</div>
+                  <div class="wx-gauge-value"><span id="wx-g-daylight">--</span></div>
+                  <div class="wx-gauge-unit">min</div>
+                  <div class="wx-gauge-label">To sunset</div>
+                </div>
+
+                <div class="wx-gauge" title="Moon illumination">
+                  <div class="wx-gauge-icon">🌙</div>
+                  <div class="wx-gauge-value"><span id="wx-g-moon">--</span></div>
+                  <div class="wx-gauge-unit">%</div>
+                  <div class="wx-gauge-label">Illum.</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="wx-hero-meta">

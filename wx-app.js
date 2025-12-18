@@ -383,6 +383,67 @@ function render() {
   const precipProb = hourly.pop[idx] ?? 0;
   els.precip.textContent = `Precip: ${precipProb}%`;
 
+  // Gauges (right of the temperature)
+  // Wind speed + unit
+  const windBaseMph = Number(curr.rawWindSpeed ?? 0);
+  const windVal = wxUnit === "F" ? Math.round(windBaseMph) : Math.round(windBaseMph * 1.60934);
+  const windUnit = wxUnit === "F" ? "mph" : "km/h";
+  const gWind = document.getElementById("wx-g-wind");
+  const gWindUnit = document.getElementById("wx-g-wind-unit");
+  if (gWind) gWind.textContent = Number.isFinite(windVal) ? String(windVal) : "--";
+  if (gWindUnit) gWindUnit.textContent = windUnit;
+
+  // Pressure: base is hPa (Open-Meteo surface_pressure / msl)
+  const presHpa = Number(hourly.pressure?.[idx]);
+  const gPres = document.getElementById("wx-g-pressure");
+  const gPresUnit = document.getElementById("wx-g-pressure-unit");
+  if (gPres) {
+    if (Number.isFinite(presHpa)) {
+      if (wxUnit === "F") {
+        const inHg = presHpa * 0.02953;
+        gPres.textContent = inHg.toFixed(2);
+        if (gPresUnit) gPresUnit.textContent = "inHg";
+      } else {
+        gPres.textContent = String(Math.round(presHpa));
+        if (gPresUnit) gPresUnit.textContent = "hPa";
+      }
+    } else {
+      gPres.textContent = "----";
+    }
+  }
+
+  // Daylight: minutes to sunset (today)
+  const gDay = document.getElementById("wx-g-daylight");
+  try {
+    const dayKey = hourly.time?.[idx]?.slice(0, 10) || daily.time?.[0];
+    const dayIdx = (daily.time || []).findIndex((d) => d === dayKey);
+    const sunsetIso = daily.sunset?.[dayIdx >= 0 ? dayIdx : 0];
+    if (gDay && sunsetIso) {
+      const mins = Math.max(0, Math.floor((new Date(sunsetIso).getTime() - Date.now()) / 60000));
+      gDay.textContent = String(mins);
+    } else if (gDay) {
+      gDay.textContent = "--";
+    }
+  } catch {
+    if (gDay) gDay.textContent = "--";
+  }
+
+  // Moon illumination (approx) from Open-Meteo moon_phase (0..1)
+  const gMoon = document.getElementById("wx-g-moon");
+  try {
+    const dayKey = hourly.time?.[idx]?.slice(0, 10) || daily.time?.[0];
+    const dayIdx = (daily.time || []).findIndex((d) => d === dayKey);
+    const phase = Number(daily.moonPhase?.[dayIdx >= 0 ? dayIdx : 0]);
+    if (gMoon && Number.isFinite(phase)) {
+      const illum = 0.5 * (1 - Math.cos(2 * Math.PI * phase));
+      gMoon.textContent = String(Math.round(illum * 100));
+    } else if (gMoon) {
+      gMoon.textContent = "--";
+    }
+  } catch {
+    if (gMoon) gMoon.textContent = "--";
+  }
+
   // Alerts
   renderAlerts(buildAlerts(curr, hourly, idx, timezone));
 

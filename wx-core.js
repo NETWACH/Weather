@@ -125,14 +125,41 @@ export const WX = (() => {
     return unit === "F" ? `${Math.round(mph)} mph` : `${Math.round(mph * 1.60934)} km/h`; 
   }
 
+  // Approximate lunar phase fraction [0..1) for a given date (0=new, 0.5=full).
+  // Uses a simple synodic month approximation; good enough for UI gauges.
+  function moonPhaseFraction(date) {
+    const synodic = 29.530588853; // days
+    // Reference new moon: 2000-01-06 18:14 UTC (approx)
+    const ref = Date.UTC(2000, 0, 6, 18, 14, 0);
+    const days = (date.getTime() - ref) / 86400000;
+    let phase = (days / synodic) % 1;
+    if (phase < 0) phase += 1;
+    return phase;
+  }
+
+  function computeMoonPhaseArray(dateStrings) {
+    // dateStrings are YYYY-MM-DD from Open-Meteo daily.time; treat as local noon for stability
+    return (dateStrings || []).map((d) => {
+      const parts = String(d).split("-").map(Number);
+      if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) return NaN;
+      const dt = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 12, 0, 0));
+      return moonPhaseFraction(dt);
+    });
+  }
+
+
   async function fetchOpenMeteo({ lat, lon, unit = "F" }) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      throw new Error(`Invalid coordinates for Open-Meteo request (lat=${lat}, lon=${lon})`);
+    }
+
     const url =
       `https://api.open-meteo.com/v1/forecast` +
       `?latitude=${lat}` +
       `&longitude=${lon}` +
       `&current_weather=true` +
-      `&hourly=temperature_2m,apparent_temperature,precipitation_probability,weathercode,is_day,surface_pressure,pressure_msl` +
-      `&daily=temperature_2m_max,temperature_2m_min,weathercode,uv_index_max,precipitation_sum,windspeed_10m_max` + 
+      `&hourly=temperature_2m,apparent_temperature,precipitation_probability,weathercode,is_day,surface_pressure` +
+      `&daily=temperature_2m_max,temperature_2m_min,weathercode,uv_index_max,precipitation_sum,windspeed_10m_max,sunrise,sunset` +
       `&windspeed_unit=mph` + // Keep windspeed in MPH as a base unit
       `&timezone=auto`;
 
@@ -178,8 +205,12 @@ export const WX = (() => {
         uvMax: daily.uv_index_max || [], 
         precipSum: daily.precipitation_sum || [], 
         rawWindMax: daily.windspeed_10m_max || [],
+        sunrise: daily.sunrise || [],
+        sunset: daily.sunset || [],
+        moonPhase: computeMoonPhaseArray(daily.time || []),
       },
     };
+
   }
 
   /* ---------------- TIME + INSIGHT ---------------- */
