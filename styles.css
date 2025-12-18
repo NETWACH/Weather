@@ -679,3 +679,86 @@ body.wx-p-rising .wx-pressure-dot { animation: wx-pop 1.6s ease-in-out infinite;
   0% { transform: translateY(-18px); }
   100% { transform: translateY(18px); }
 }
+
+/* Footer */
+
+/* ===== NetWatch Footer ===== */
+.wx-footer{
+  display:flex;
+  justify-content:center;
+  padding: 1.25rem 1rem 1.75rem;
+}
+
+.wx-footer-glass{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:0.55rem;
+
+  padding:0.55rem 1.1rem;
+  border-radius:999px;
+
+  font-size:0.72rem;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+
+  color: hsl(var(--wx-fg) / 0.65);
+
+  background:
+    linear-gradient(
+      120deg,
+      hsl(var(--wx-bg) / 0.35),
+      hsl(var(--wx-bg) / 0.15)
+    );
+
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+
+  box-shadow:
+    inset 0 0 0 1px hsl(0 0% 100% / 0.06),
+    0 12px 30px hsl(0 0% 0% / 0.35);
+
+  overflow:hidden;
+}
+
+/* iPhone-style silver light sweep */
+.wx-footer-glass::before{
+  content:"";
+  position:absolute;
+  inset:-40%;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 35%,
+      hsl(0 0% 100% / 0.22),
+      transparent 65%
+    );
+  transform: translateX(-60%) rotate(12deg);
+  animation: wxFooterSweep 8s ease-in-out infinite;
+  pointer-events:none;
+}
+
+@keyframes wxFooterSweep{
+  0%, 65%{
+    transform: translateX(-60%) rotate(12deg);
+    opacity:0;
+  }
+  75%{
+    opacity:1;
+  }
+  100%{
+    transform: translateX(60%) rotate(12deg);
+    opacity:0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .wx-footer-glass::before{
+    animation:none;
+    opacity:0.35;
+  }
+}
+
+.wx-footer-sep{
+  opacity:0.35;
+}
