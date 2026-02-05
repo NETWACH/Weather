@@ -3,475 +3,250 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ARK Vord 1.6</title>
+  <title>ARK Vord 8.0 | Enterprise Command (Full)</title>
 
   <!-- Fonts + Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fraunces:wght@700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    :root{
-      --bg0:#07090f;
-      --bg1:#0b1020;
-      --card: rgba(255,255,255,.06);
-      --card2: rgba(255,255,255,.08);
-      --stroke: rgba(255,255,255,.12);
-      --stroke2: rgba(255,255,255,.18);
-
-      --text:#e9edf7;
-      --muted: rgba(233,237,247,.72);
-
-      --gold:#d7b56d;
-      --gold2:#f0d79a;
-      --emerald:#39d98a;
-      --ruby:#ff4d6d;
-      --ice:#5aa7ff;
-      --amber:#ffcc66;
-
-      --shadow: 0 24px 70px rgba(0,0,0,.55);
-      --shadow2: 0 14px 34px rgba(0,0,0,.40);
-
-      --radius: 18px;
-      --radius2: 24px;
-
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    :root {
+      --bg-deep: #05070a;
+      --glass: rgba(15, 20, 30, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --accent-gold: #d7b56d;
+      --accent-emerald: #00ffa3;
+      --accent-ruby: #ff3e5e;
+      --accent-ice: #5aa7ff;
+      --text-main: #e9edf7;
+      --muted: rgba(233,237,247,.68);
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --shadow-elite: 0 20px 50px rgba(0,0,0,0.8);
+      --radius: 24px;
     }
 
-    *{ box-sizing:border-box; margin:0; padding:0; }
-    html,body{ height:100%; }
-    body{
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(1400px 700px at 20% -10%, rgba(215,181,109,.18), transparent 60%),
-        radial-gradient(1000px 600px at 85% 0%, rgba(90,167,255,.20), transparent 60%),
-        radial-gradient(900px 700px at 40% 110%, rgba(57,217,138,.14), transparent 60%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
-      overflow:hidden;
+    *{ box-sizing:border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top right, #1a1f30, #05070a);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
     }
 
+    /* Soft grain */
     body:before{
       content:"";
       position:fixed; inset:0;
       background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
       mix-blend-mode: overlay;
-      opacity:.28;
+      opacity:.18;
       pointer-events:none;
     }
 
     a{ color:inherit; text-decoration:none; }
-    button,input,select,textarea{ font:inherit; }
+    button,input,select{ font:inherit; }
 
-    /* App Layout */
-    .app{
-      height:100%;
-      display:grid;
-      grid-template-columns: 300px 1fr;
-      gap: 18px;
-      padding: 18px;
-    }
-
-    .sidebar, .main{
-      border:1px solid var(--stroke);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border-radius: var(--radius2);
-      box-shadow: var(--shadow2);
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
-      min-width: 0;
-    }
-    .main{ box-shadow: var(--shadow); }
-
-    /* Brand + Profile */
-    .brand{
-      padding: 18px 18px 14px;
-      border-bottom:1px solid var(--stroke);
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
-    .brand .mark{
-      width:44px;height:44px;border-radius:14px;
-      background:
-        radial-gradient(14px 14px at 30% 30%, rgba(240,215,154,.9), rgba(215,181,109,.55)),
-        linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,0));
-      border:1px solid rgba(215,181,109,.35);
-      box-shadow: 0 10px 20px rgba(215,181,109,.10);
-      display:grid; place-items:center;
-      color: rgba(0,0,0,.75);
-    }
-    .brand h1{
-      font-family: Fraunces, serif;
-      font-size: 20px;
-      letter-spacing:.3px;
-      line-height:1.05;
-    }
-    .brand .ver{
-      display:block;
-      font-size: 11px;
-      color: var(--muted);
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      margin-top: 3px;
+    .glass-panel {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-elite);
     }
 
-    .sideblock{
-      padding: 16px 18px;
-      border-bottom:1px solid var(--stroke);
+    .app-container {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+      padding: 20px;
+      height: 100vh;
     }
 
-    .label{
-      font-size: 11px;
-      letter-spacing: .18em;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 10px;
+    .sidebar { display: flex; flex-direction: column; gap: 15px; padding: 20px; min-width: 0; }
+    .sidebar h1 { margin: 0; }
+
+    .nav-item {
+      padding: 12px 15px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex; align-items: center; gap: 12px;
+      font-weight: 800;
+      color: rgba(255,255,255,0.62);
+      user-select:none;
+      border: 1px solid transparent;
+    }
+    .nav-item:hover, .nav-item.active {
+      background: rgba(255,255,255,0.08);
+      color: var(--accent-gold);
+      border-left: 4px solid var(--accent-gold);
+      border-color: rgba(255,255,255,0.08);
     }
 
-    .select, .input, .textarea{
-      width:100%;
-      background: rgba(0,0,0,.28);
-      border:1px solid var(--stroke);
-      border-radius: 14px;
-      color: var(--text);
-      padding: 10px 12px;
-      outline:none;
-      transition: .15s ease;
-    }
-    .textarea{ min-height: 92px; resize: vertical; }
-    .select:focus, .input:focus, .textarea:focus{
-      border-color: rgba(215,181,109,.55);
-      box-shadow: 0 0 0 4px rgba(215,181,109,.12);
-    }
-
-    .pill{
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.14);
-      color: var(--muted);
-      background: rgba(0,0,0,.20);
+    .role-badge {
+      font-size: 10px; padding: 3px 8px; border-radius: 6px;
+      text-transform: uppercase; letter-spacing: 1px;
+      background: var(--accent-gold); color: black; font-weight: 900;
       display:inline-flex; align-items:center; gap:8px;
     }
 
-    .profileCard{
-      background: rgba(0,0,0,.22);
-      border: 1px solid var(--stroke);
-      border-radius: var(--radius);
-      padding: 12px 12px 12px;
-      display:flex;
-      gap: 12px;
-      align-items:flex-start;
+    .muted { color: var(--muted); }
+    .mono { font-family: var(--mono); }
+
+    /* Content */
+    main.glass-panel { padding: 26px; overflow: auto; min-width: 0; }
+    .toprow { display:flex; justify-content:space-between; align-items:flex-end; gap: 12px; flex-wrap: wrap; }
+    .title { font-family: Fraunces, serif; font-size: 32px; margin: 0; letter-spacing: .2px; }
+    .subtitle { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+
+    .btn-elite {
+      background: linear-gradient(135deg, #d7b56d, #b39456);
+      color: black; border: none; padding: 10px 16px;
+      border-radius: 12px; font-weight: 900; cursor: pointer;
+      display:inline-flex; gap:10px; align-items:center;
     }
-    .avatar{
-      width:42px; height:42px; border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
-      display:grid; place-items:center;
-      color: rgba(240,215,154,.9);
-      flex: 0 0 auto;
-    }
-    .profileMeta{ min-width:0; }
-    .profileMeta .who{
-      font-weight: 900;
-      letter-spacing: .01em;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .profileMeta .sub{
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height:1.25;
-    }
-    .kv{
-      margin-top: 10px;
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
-      font-size: 12px;
-      color: rgba(233,237,247,.84);
-    }
-    .kv .row{
-      display:flex; justify-content:space-between; gap: 10px;
-      padding: 8px 10px;
-      border: 1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.03);
+    .btn-ghost {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-main);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 10px 14px;
       border-radius: 12px;
-      font-family: var(--mono);
-    }
-    .kv .k{ color: rgba(233,237,247,.66); font-family: Inter, sans-serif; letter-spacing:.08em; text-transform:uppercase; font-size: 10px; }
-    .kv .v{ font-variant-numeric: tabular-nums; }
-
-    .nav{
-      padding: 10px 10px 16px;
-      display:flex;
-      flex-direction:column;
-      gap: 6px;
-      flex:1;
-    }
-    .navbtn{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid transparent;
-      color: rgba(233,237,247,.92);
-      background: transparent;
-      cursor:pointer;
-      transition:.15s ease;
-      text-align:left;
-    }
-    .navbtn:hover{
-      background: rgba(255,255,255,.06);
-      border-color: rgba(255,255,255,.10);
-    }
-    .navbtn .left{
-      display:flex; align-items:center; gap:10px;
-      min-width:0;
-    }
-    .navbtn .title{
-      font-weight:900;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .navbtn .sub{
-      color: var(--muted);
-      font-size:12px;
-      margin-top:2px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .sidefooter{
-      padding: 14px 18px;
-      border-top:1px solid var(--stroke);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    /* Main */
-    .topbar{
-      padding: 18px 18px 14px;
-      border-bottom:1px solid var(--stroke);
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap: 12px;
-    }
-    .headline{
-      min-width:0;
-    }
-    .headline h2{
-      font-family: Fraunces, serif;
-      font-size: 24px;
-      letter-spacing:.2px;
-      line-height:1.05;
-    }
-    .headline p{
-      margin-top:6px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .actions{
-      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
-      align-items:center;
-    }
-
-    .btn{
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 14px;
-      cursor:pointer;
-      transition: .15s ease;
-      font-weight: 800;
-      letter-spacing:.02em;
-      display:inline-flex;
-      align-items:center;
-      gap: 8px;
-      white-space:nowrap;
-    }
-    .btn:hover{
-      background: rgba(255,255,255,.10);
-      border-color: rgba(255,255,255,.20);
-    }
-    .btn.primary{
-      border-color: rgba(215,181,109,.35);
-      background: linear-gradient(180deg, rgba(240,215,154,.22), rgba(215,181,109,.10));
-    }
-    .btn.primary:hover{
-      background: linear-gradient(180deg, rgba(240,215,154,.30), rgba(215,181,109,.14));
-      border-color: rgba(215,181,109,.55);
-    }
-    .btn.danger{
-      border-color: rgba(255,77,109,.30);
-      background: rgba(255,77,109,.10);
-    }
-
-    .content{
-      padding: 16px 18px 18px;
-      overflow:auto;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 14px;
-    }
-
-    .card{
-      background: rgba(0,0,0,.22);
-      border: 1px solid var(--stroke);
-      border-radius: var(--radius);
-      padding: 14px 14px 13px;
-      box-shadow: 0 10px 24px rgba(0,0,0,.22);
-      position:relative;
-      overflow:hidden;
-      min-width:0;
-    }
-    .card:before{
-      content:"";
-      position:absolute; inset:-1px;
-      background: radial-gradient(800px 200px at 20% 0%, rgba(215,181,109,.16), transparent 55%);
-      pointer-events:none;
-    }
-    .card .k{
-      position:relative;
-      font-size: 11px;
-      color: var(--muted);
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      margin-bottom: 10px;
-      display:flex; align-items:center; justify-content:space-between; gap: 10px;
-    }
-    .card .v{
-      position:relative;
-      font-size: 28px;
       font-weight: 900;
-      letter-spacing: -0.02em;
-      font-variant-numeric: tabular-nums;
-      line-height:1.05;
+      cursor: pointer;
+      display:inline-flex; gap:10px; align-items:center;
     }
-    .card .sub{
-      position:relative;
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 12px;
-      display:flex;
-      gap: 8px;
-      align-items:center;
-      line-height:1.25;
-    }
-
-    .filters{
-      margin: 10px 0 12px;
-      display:flex;
-      gap: 10px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-    .chip{
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.05);
-      color: rgba(233,237,247,.86);
-      padding: 8px 10px;
-      border-radius: 999px;
+    .btn-danger {
+      background: rgba(255,62,94,0.10);
+      color: var(--accent-ruby);
+      border: 1px solid rgba(255,62,94,0.35);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-weight: 900;
       cursor:pointer;
-      font-weight: 800;
-      font-size: 12px;
-      display:inline-flex; align-items:center; gap: 8px;
-      transition:.15s ease;
     }
-    .chip:hover{ background: rgba(255,255,255,.08); }
-    .chip.active{
-      border-color: rgba(215,181,109,.45);
-      background: rgba(215,181,109,.12);
-      color: rgba(240,215,154,.98);
+    .btn-mini {
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-weight: 900;
+      font-size: 12px;
     }
 
-    .tablewrap{
-      background: rgba(0,0,0,.22);
-      border: 1px solid var(--stroke);
-      border-radius: var(--radius);
+    .row { display:flex; gap: 10px; flex-wrap: wrap; align-items:center; }
+    .spacer { flex:1; }
+
+    .input, .select {
+      width: 100%;
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 12px;
+      color: var(--text-main);
+      padding: 10px 12px;
+      outline: none;
+      transition: .15s ease;
+    }
+    .input:focus, .select:focus{
+      border-color: rgba(215,181,109,.55);
+      box-shadow: 0 0 0 4px rgba(215,181,109,.10);
+    }
+
+    /* Cards */
+    .grid-cards {
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .card {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.10);
       overflow:hidden;
+      min-width:0;
     }
-    table{
-      width:100%;
-      border-collapse:collapse;
-      min-width: 980px;
+    .k { font-size: 11px; letter-spacing:.16em; text-transform: uppercase; opacity: 0.65; }
+    .v { margin-top: 10px; font-size: 28px; font-weight: 900; font-family: var(--mono); }
+    .v.pos { color: var(--accent-emerald); }
+    .v.neg { color: var(--accent-ruby); }
+    .v.ice { color: var(--accent-ice); }
+
+    /* Tables */
+    .enterprise-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 8px;
+      margin-top: 18px;
+      min-width: 760px;
     }
-    thead th{
+    .tablewrap { overflow:auto; border-radius: 18px; }
+    .enterprise-table thead th {
       text-align:left;
-      font-size: 11px;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color: rgba(233,237,247,.82);
-      padding: 14px 14px;
-      background: rgba(255,255,255,.06);
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      position:sticky;
-      top:0;
-      backdrop-filter: blur(10px);
-      z-index:2;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      opacity: .5;
+      padding: 10px 12px;
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(12px);
+      background: rgba(0,0,0,0.20);
+      z-index: 2;
     }
-    tbody td{
-      padding: 12px 14px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-      color: rgba(233,237,247,.90);
-      font-size: 13px;
-      vertical-align: middle;
-      font-variant-numeric: tabular-nums;
+    .enterprise-table tr { transition: 0.15s; cursor: default; }
+    .enterprise-table tbody tr:hover { transform: scale(1.005); }
+    .enterprise-table td {
+      padding: 14px 12px;
+      background: rgba(255,255,255,0.02);
+      font-family: var(--mono);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
       white-space: nowrap;
     }
-    tbody tr{
-      cursor:pointer;
-    }
-    tbody tr:hover td{
-      background: rgba(255,255,255,.04);
-    }
+    .enterprise-table td:first-child { border-radius: 12px 0 0 12px; }
+    .enterprise-table td:last-child { border-radius: 0 12px 12px 0; }
 
-    .mono{ font-family: var(--mono); }
-    .tag{
-      display:inline-flex;
-      align-items:center;
-      gap: 7px;
+    .money-pos { color: var(--accent-emerald); }
+    .money-neg { color: var(--accent-ruby); }
+
+    .tag {
+      display:inline-flex; align-items:center; gap: 8px;
       padding: 6px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.18);
       font-size: 12px;
-      color: rgba(233,237,247,.86);
+      color: rgba(233,237,247,.88);
+      font-family: var(--mono);
     }
-    .dot{ width:8px; height:8px; border-radius:50%; background: rgba(255,255,255,.35); }
-    .dot.posted{ background: rgba(57,217,138,.75); }
-    .dot.pending{ background: rgba(90,167,255,.75); }
-    .dot.disputed{ background: rgba(255,204,102,.85); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.35); }
+    .dot.posted { background: rgba(0,255,163,0.85); }
+    .dot.pending { background: rgba(90,167,255,0.85); }
 
-    .amt.pos{ color: rgba(57,217,138,.95); }
-    .amt.neg{ color: rgba(255,77,109,.95); }
+    /* Pantry cards */
+    .pantry-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 15px; margin-top: 18px;
+    }
+    .inventory-card {
+      padding: 15px; border-radius: 18px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.10);
+      overflow:hidden;
+    }
+    .stock-bar {
+      height: 6px; background: rgba(255,255,255,0.10);
+      border-radius: 3px; margin-top: 10px; overflow: hidden;
+    }
+    .stock-fill { height: 100%; background: var(--accent-emerald); transition: 0.5s; }
+    .stock-low { background: var(--accent-ruby) !important; }
 
-    .muted{ color: var(--muted); }
-
-    /* Gate (login) */
+    /* Gate / login */
     .gate{
       position:fixed; inset:0;
       display:flex;
@@ -479,9 +254,9 @@
       align-items:center;
       padding: 18px;
       background:
-        radial-gradient(1000px 600px at 20% 0%, rgba(215,181,109,.22), transparent 60%),
-        radial-gradient(900px 600px at 90% 0%, rgba(90,167,255,.20), transparent 60%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
+        radial-gradient(900px 540px at 20% 0%, rgba(215,181,109,.22), transparent 60%),
+        radial-gradient(900px 540px at 90% 0%, rgba(90,167,255,.18), transparent 60%),
+        linear-gradient(180deg, #04060a, #070a12);
       z-index: 9999;
     }
     .login{
@@ -489,30 +264,17 @@
       border-radius: 28px;
       border: 1px solid rgba(255,255,255,.14);
       background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-elite);
       overflow:hidden;
       position:relative;
     }
-    .login:before{
-      content:"";
-      position:absolute; inset:-2px;
-      background: radial-gradient(900px 280px at 30% 0%, rgba(240,215,154,.22), transparent 55%);
-      pointer-events:none;
-    }
     .loginhead{
-      position:relative;
-      padding: 20px 20px 10px;
+      padding: 18px 18px 12px;
       display:flex;
-      align-items:center;
       justify-content:space-between;
-      gap: 12px;
-      border-bottom: 1px solid rgba(255,255,255,.10);
-    }
-    .loginhead .left{
-      display:flex;
       align-items:center;
       gap: 12px;
-      min-width:0;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
     }
     .crest{
       width:46px; height:46px; border-radius: 16px;
@@ -521,10 +283,10 @@
         linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,0));
       border: 1px solid rgba(215,181,109,.38);
       display:grid; place-items:center;
-      box-shadow: 0 12px 30px rgba(215,181,109,.12);
       color: rgba(0,0,0,.70);
     }
     .loginhead h3{
+      margin: 0;
       font-family: Fraunces, serif;
       font-size: 20px;
       line-height:1.1;
@@ -533,34 +295,31 @@
       overflow:hidden;
       text-overflow:ellipsis;
     }
-    .loginhead .meta{
-      font-size: 11px;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color: var(--muted);
-      margin-top: 4px;
-    }
     .loginbody{
-      position:relative;
-      padding: 18px 20px 20px;
+      padding: 16px 18px 18px;
       display:flex;
       flex-direction:column;
       gap: 10px;
     }
-
+    .label{
+      font-size: 11px;
+      letter-spacing:.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 4px;
+    }
     .err{
       display:none;
       margin-top: 6px;
       padding: 10px 12px;
       border-radius: 14px;
-      border: 1px solid rgba(255,77,109,.30);
-      background: rgba(255,77,109,.10);
+      border: 1px solid rgba(255,62,94,.35);
+      background: rgba(255,62,94,.10);
       color: rgba(255,220,226,.95);
       font-size: 13px;
-      line-height:1.25;
     }
 
-    /* Modal + Drawer */
+    /* Modal */
     .modal{
       position:fixed; inset:0;
       background: rgba(0,0,0,.62);
@@ -575,38 +334,30 @@
       border-radius: 26px;
       border: 1px solid rgba(255,255,255,.14);
       background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-elite);
       overflow:hidden;
       position:relative;
     }
-    .sheet:before{
-      content:"";
-      position:absolute; inset:-2px;
-      background: radial-gradient(900px 260px at 30% 0%, rgba(240,215,154,.18), transparent 55%);
-      pointer-events:none;
-    }
     .sheethead{
-      position:relative;
-      padding: 16px 18px;
-      border-bottom: 1px solid rgba(255,255,255,.10);
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap: 12px;
     }
     .sheethead h4{
+      margin: 0;
       font-family: Fraunces, serif;
       font-size: 18px;
       letter-spacing:.2px;
     }
     .sheetbody{
-      position:relative;
-      padding: 16px 18px 18px;
+      padding: 14px 16px 16px;
       display:flex;
       flex-direction:column;
       gap: 10px;
     }
-
     .seg{
       display:flex;
       gap:8px;
@@ -633,120 +384,12 @@
       color: rgba(233,237,247,.95);
     }
 
-    /* Transaction Detail Drawer */
-    .drawer{
-      position:fixed;
-      top: 18px;
-      right: 18px;
-      height: calc(100% - 36px);
-      width: min(520px, calc(100% - 36px));
-      border-radius: 26px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-      box-shadow: var(--shadow);
-      display:none;
-      flex-direction:column;
-      z-index: 9500;
-      overflow:hidden;
-    }
-    .drawer:before{
-      content:"";
-      position:absolute; inset:-2px;
-      background: radial-gradient(1000px 320px at 30% 0%, rgba(240,215,154,.16), transparent 55%);
-      pointer-events:none;
-    }
-    .drawerHead{
-      position:relative;
-      padding: 16px 16px 12px;
-      border-bottom: 1px solid rgba(255,255,255,.10);
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap: 10px;
-    }
-    .drawerTitle{
-      min-width:0;
-    }
-    .drawerTitle h3{
-      font-family: Fraunces, serif;
-      font-size: 20px;
-      letter-spacing:.2px;
-      line-height:1.1;
-    }
-    .drawerTitle p{
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height:1.25;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .drawerBody{
-      position:relative;
-      padding: 14px 16px 16px;
-      overflow:auto;
-      display:flex;
-      flex-direction:column;
-      gap: 12px;
-    }
-
-    .twoCol{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .mini{
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      border-radius: 16px;
-      padding: 12px;
-      min-width:0;
-    }
-    .mini .k{
-      font-size: 10px;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-      color: rgba(233,237,247,.62);
-      margin-bottom: 8px;
-    }
-    .mini .v{
-      font-family: var(--mono);
-      font-size: 13px;
-      color: rgba(233,237,247,.90);
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-    .mini .big{
-      font-family: var(--mono);
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: -0.02em;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .hint{
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 6px;
-      line-height: 1.35;
-    }
-
-    /* Responsive */
-    @media (max-width: 1100px){
-      body{ overflow:auto; }
-      .app{ grid-template-columns: 1fr; height:auto; }
-      table{ min-width: 880px; }
-      .drawer{ top: 0; right: 0; height: 100%; width: 100%; border-radius: 0; }
-    }
-    @media (max-width: 860px){
-      .grid{ grid-template-columns: 1fr 1fr; }
-      table{ min-width: 820px; }
-    }
-    @media (max-width: 560px){
-      .grid{ grid-template-columns: 1fr; }
-      .twoCol{ grid-template-columns: 1fr; }
+    @media (max-width: 980px){
+      body{ overflow:auto; height:auto; }
+      .app-container{ grid-template-columns: 1fr; height:auto; }
+      main.glass-panel{ overflow: visible; }
+      .grid-cards{ grid-template-columns: 1fr; }
+      .enterprise-table{ min-width: 720px; }
     }
   </style>
 </head>
@@ -756,14 +399,16 @@
   <div id="gate" class="gate">
     <div class="login">
       <div class="loginhead">
-        <div class="left">
+        <div style="display:flex; gap:12px; align-items:center; min-width:0;">
           <div class="crest"><i class="fa-solid fa-landmark"></i></div>
-          <div style="min-width:0">
-            <h3>ARK Vord</h3>
-            <div class="meta">Private Ledger Interface • v1.6</div>
+          <div style="min-width:0;">
+            <h3>ARK VORD</h3>
+            <div class="muted" style="font-size:11px; letter-spacing:.18em; text-transform:uppercase; margin-top:4px;">
+              Secure Access • Enterprise Command
+            </div>
           </div>
         </div>
-        <span class="pill"><i class="fa-solid fa-shield-halved"></i> Protected</span>
+        <span class="tag"><span class="dot posted"></span>Protected</span>
       </div>
 
       <div class="loginbody">
@@ -771,255 +416,258 @@
         <input class="input" id="login-email" type="email" placeholder="Email address" autocomplete="email" />
         <input class="input" id="login-pass" type="password" placeholder="Password" autocomplete="current-password" />
 
-        <div style="display:flex; gap:10px; align-items:center;">
-          <button class="btn primary" style="flex:1;" onclick="Ark.login()">
-            <i class="fa-solid fa-arrow-right-to-bracket"></i> Enter
-          </button>
-          <button class="btn" onclick="Ark.checkSession(true)">
-            <i class="fa-solid fa-rotate"></i> Restore
-          </button>
+        <div class="row">
+          <button class="btn-elite" onclick="Ark.login()"><i class="fa-solid fa-arrow-right-to-bracket"></i>Enter</button>
+          <button class="btn-ghost" onclick="Ark.checkSession(true)"><i class="fa-solid fa-rotate"></i>Restore</button>
         </div>
 
         <div id="login-error" class="err"></div>
-        <div class="hint">
-          ARK Vord is a personal finance ledger (not a real bank). Use your Supabase Auth credentials.
+        <div class="muted" style="font-size:12px; line-height:1.35; margin-top:4px;">
+          Uses Supabase Auth. All access should be enforced by Row Level Security.
         </div>
       </div>
     </div>
   </div>
 
   <!-- APP -->
-  <div id="app" class="app" style="display:none;">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="mark"><i class="fa-solid fa-a"></i></div>
-        <div style="min-width:0;">
-          <h1>ARK Vord <span class="ver">1.6</span></h1>
+  <div id="app" class="app-container" style="display:none;">
+    <aside class="sidebar glass-panel">
+      <div style="text-align:center; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.10);">
+        <h1 style="font-family:Fraunces; font-size: 22px; color:var(--accent-gold);">
+          ARK VORD <span style="font-size:12px;">8.0</span>
+        </h1>
+        <div id="role-display" class="role-badge"><i class="fa-solid fa-shield-halved"></i><span>Authenticated</span></div>
+
+        <div style="margin-top:12px; text-align:left;">
+          <div class="label" style="margin:0 0 8px;">Active account</div>
+          <select id="account-picker" class="select" onchange="Ark.setActiveAccount(this.value)"></select>
+          <div class="muted" style="font-size:12px; margin-top:8px;">
+            Switch accounts to filter ledger + business modules.
+          </div>
         </div>
       </div>
 
-      <div class="sideblock">
-        <div class="profileCard">
-          <div class="avatar"><i class="fa-solid fa-user"></i></div>
-          <div class="profileMeta">
-            <div class="who" id="ui-username">—</div>
-            <div class="sub" id="ui-email">—</div>
+      <nav>
+        <div class="nav-item active" onclick="Ark.switchTab('ledger', this)"><i class="fa-solid fa-vault"></i> Main Ledger</div>
+        <div class="nav-item" onclick="Ark.switchTab('pantry', this)"><i class="fa-solid fa-boxes-stacked"></i> Pantry / Inventory</div>
+        <div class="nav-item" onclick="Ark.switchTab('invoices', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Business Invoices</div>
+        <div class="nav-item" onclick="Ark.switchTab('settings', this)"><i class="fa-solid fa-gears"></i> Subscriptions</div>
+      </nav>
 
-            <div class="kv">
-              <div class="row">
-                <div class="k">Client ID</div>
-                <div class="v" id="ui-clientid">—</div>
-              </div>
-              <div class="row">
-                <div class="k">Session</div>
-                <div class="v" id="ui-session">—</div>
-              </div>
-            </div>
-          </div>
+      <div style="margin-top:auto; font-size: 11px; opacity: 0.6;">
+        <p>Enterprise ID: <span id="ui-clientid" class="mono">…</span></p>
+        <div class="row" style="margin-top:10px;">
+          <button class="btn-ghost btn-mini" onclick="Ark.refreshAll()"><i class="fa-solid fa-arrows-rotate"></i>Refresh</button>
+          <button class="btn-ghost btn-mini" onclick="Ark.exportActive()"><i class="fa-solid fa-file-export"></i>Export</button>
         </div>
-
-        <div class="hint" style="margin-top:10px;">
-          Tip: click any transaction row to open the detailed record view (reference, timestamps, dispute, memo).
+        <button class="btn-danger" onclick="Ark.logout()" style="width:100%; margin-top:10px;">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> SIGN OUT
+        </button>
+        <div class="muted" style="margin-top:10px;">
+          <div id="who" style="font-weight:900; color: rgba(233,237,247,.92);">—</div>
+          <div id="when">—</div>
         </div>
-      </div>
-
-      <div class="sideblock">
-        <div class="label">Active account</div>
-        <select class="select" id="account-picker" onchange="Ark.setActiveAccount(this.value)"></select>
-
-        <div class="kv" style="margin-top:12px;">
-          <div class="row">
-            <div class="k">Account No.</div>
-            <div class="v" id="ui-acctno">—</div>
-          </div>
-          <div class="row">
-            <div class="k">Routing</div>
-            <div class="v" id="ui-routing">021000021</div>
-          </div>
-        </div>
-
-        <div class="hint" style="margin-top:10px;">
-          Account numbers are derived from your account UUID for display.
-        </div>
-      </div>
-
-      <div class="nav">
-        <button class="navbtn" onclick="Ark.openCompose('transaction')">
-          <div class="left">
-            <i class="fa-solid fa-circle-plus" style="color:var(--gold)"></i>
-            <div style="min-width:0">
-              <div class="title">New Transaction</div>
-              <div class="sub">Deposit / Withdrawal</div>
-            </div>
-          </div>
-          <span class="pill">T</span>
-        </button>
-
-        <button class="navbtn" onclick="Ark.openCompose('transfer')">
-          <div class="left">
-            <i class="fa-solid fa-right-left" style="color:var(--ice)"></i>
-            <div style="min-width:0">
-              <div class="title">Transfer</div>
-              <div class="sub">Between accounts</div>
-            </div>
-          </div>
-          <span class="pill">X</span>
-        </button>
-
-        <button class="navbtn" onclick="Ark.refresh()">
-          <div class="left">
-            <i class="fa-solid fa-arrows-rotate" style="color:var(--emerald)"></i>
-            <div style="min-width:0">
-              <div class="title">Refresh</div>
-              <div class="sub">Sync activity & totals</div>
-            </div>
-          </div>
-          <span class="pill">R</span>
-        </button>
-
-        <button class="navbtn" onclick="Ark.exportCSV()">
-          <div class="left">
-            <i class="fa-solid fa-file-export" style="color:var(--amber)"></i>
-            <div style="min-width:0">
-              <div class="title">Export Statement</div>
-              <div class="sub">CSV (active account)</div>
-            </div>
-          </div>
-          <span class="pill">CSV</span>
-        </button>
-
-        <button class="navbtn" onclick="Ark.logout()">
-          <div class="left">
-            <i class="fa-solid fa-arrow-right-from-bracket" style="color:var(--ruby)"></i>
-            <div style="min-width:0">
-              <div class="title">Sign Out</div>
-              <div class="sub">End session</div>
-            </div>
-          </div>
-          <span class="pill">⇥</span>
-        </button>
-      </div>
-
-      <div class="sidefooter">
-        <div id="ui-time">—</div>
-        <span class="pill"><i class="fa-solid fa-lock"></i> RLS</span>
       </div>
     </aside>
 
-    <!-- Main -->
-    <main class="main">
-      <div class="topbar">
-        <div class="headline">
-          <h2>Portfolio Overview</h2>
-          <p id="subhead">Balances and recent activity for your selected account.</p>
+    <main class="glass-panel">
+      <!-- LEDGER -->
+      <section id="view-ledger">
+        <div class="toprow">
+          <div>
+            <h2 class="title">Master Ledger</h2>
+            <p id="ledger-sub" class="subtitle">Balances and recent activity.</p>
+          </div>
+          <div class="row">
+            <button class="btn-ghost" onclick="Ark.openCompose('transfer')"><i class="fa-solid fa-right-left"></i>Transfer</button>
+            <button class="btn-elite" onclick="Ark.openCompose('transaction')"><i class="fa-solid fa-circle-plus"></i>New Entry</button>
+          </div>
         </div>
 
-        <div class="actions">
-          <input class="input" id="search" type="text" placeholder="Search description / status / ref…" style="min-width:260px;" oninput="Ark.render()" />
-          <button class="btn" onclick="Ark.openCompose('transaction')"><i class="fa-solid fa-plus"></i> New</button>
-          <button class="btn primary" onclick="Ark.openCompose('transfer')"><i class="fa-solid fa-right-left"></i> Transfer</button>
-        </div>
-      </div>
-
-      <div class="content">
-        <section class="grid">
+        <div class="grid-cards">
           <div class="card">
-            <div class="k">Deposits <span class="pill"><i class="fa-solid fa-arrow-trend-up"></i> inflow</span></div>
-            <div class="v" id="v-dep">$0.00</div>
-            <div class="sub"><i class="fa-solid fa-circle-info" style="color:var(--emerald)"></i> Sum of positive entries (all statuses).</div>
+            <div class="k">Posted Balance</div>
+            <div id="v-bal" class="v pos">$0.00</div>
+            <div class="muted" style="font-size:12px; margin-top:10px;">Sum of POSTED amounts</div>
           </div>
-
           <div class="card">
-            <div class="k">Withdrawals <span class="pill"><i class="fa-solid fa-arrow-trend-down"></i> outflow</span></div>
-            <div class="v" id="v-wdr">$0.00</div>
-            <div class="sub"><i class="fa-solid fa-circle-info" style="color:var(--ruby)"></i> Sum of negative entries (all statuses).</div>
+            <div class="k">Pending Outflow</div>
+            <div id="v-pend" class="v neg">$0.00</div>
+            <div class="muted" style="font-size:12px; margin-top:10px;">Absolute sum of PENDING negatives</div>
           </div>
-
           <div class="card">
-            <div class="k">Posted Balance <span class="pill"><i class="fa-solid fa-scale-balanced"></i> settled</span></div>
-            <div class="v" id="v-bal">$0.00</div>
-            <div class="sub"><i class="fa-solid fa-circle-info" style="color:var(--gold)"></i> Only POSTED entries affect this figure.</div>
+            <div class="k">Available (Posted - Pending Outflow)</div>
+            <div id="v-avail" class="v ice">$0.00</div>
+            <div class="muted" style="font-size:12px; margin-top:10px;">Operational liquidity estimate</div>
           </div>
-
-          <div class="card">
-            <div class="k">Pending Net <span class="pill"><i class="fa-solid fa-hourglass-half"></i> pending</span></div>
-            <div class="v" id="v-pend">$0.00</div>
-            <div class="sub"><i class="fa-solid fa-circle-info" style="color:var(--ice)"></i> Net of PENDING entries.</div>
-          </div>
-        </section>
-
-        <div class="filters">
-          <span class="chip active" id="f-all" onclick="Ark.setFilter('ALL')"><i class="fa-solid fa-layer-group"></i> All</span>
-          <span class="chip" id="f-posted" onclick="Ark.setFilter('POSTED')"><i class="fa-solid fa-check"></i> Posted</span>
-          <span class="chip" id="f-pending" onclick="Ark.setFilter('PENDING')"><i class="fa-solid fa-hourglass-half"></i> Pending</span>
-          <span class="chip" id="f-dep" onclick="Ark.setFilter('DEPOSITS')"><i class="fa-solid fa-arrow-trend-up"></i> Deposits</span>
-          <span class="chip" id="f-wdr" onclick="Ark.setFilter('WITHDRAWALS')"><i class="fa-solid fa-arrow-trend-down"></i> Withdrawals</span>
         </div>
 
-        <section class="tablewrap">
-          <table>
+        <div class="tablewrap">
+          <table class="enterprise-table">
             <thead>
               <tr>
-                <th>Ref</th>
+                <th>Reference</th>
                 <th>Date</th>
                 <th>Description</th>
-                <th>Amount</th>
                 <th>Status</th>
+                <th>Amount</th>
               </tr>
             </thead>
             <tbody id="tx-body"></tbody>
           </table>
-        </section>
-
-        <div class="hint" style="margin-top:12px;">
-          Click a transaction to open details. You can copy the reference, view timestamps, and file a dispute.
         </div>
-      </div>
+      </section>
+
+      <!-- PANTRY -->
+      <section id="view-pantry" style="display:none;">
+        <div class="toprow">
+          <div>
+            <h2 class="title">Pantry Command</h2>
+            <p class="subtitle">Real-time inventory of business and home supplies.</p>
+          </div>
+          <div class="row">
+            <button class="btn-elite" onclick="Ark.openCompose('pantry')"><i class="fa-solid fa-plus"></i>Add Item</button>
+          </div>
+        </div>
+
+        <div class="pantry-grid" id="pantry-list"></div>
+      </section>
+
+      <!-- INVOICES -->
+      <section id="view-invoices" style="display:none;">
+        <div class="toprow">
+          <div>
+            <h2 class="title">Business Invoices</h2>
+            <p class="subtitle">Issue, track, and reconcile invoices.</p>
+          </div>
+          <div class="row">
+            <button class="btn-elite" onclick="Ark.openCompose('invoice')"><i class="fa-solid fa-file-circle-plus"></i>New Invoice</button>
+          </div>
+        </div>
+
+        <div class="tablewrap">
+          <table class="enterprise-table">
+            <thead>
+              <tr>
+                <th>Invoice #</th>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Status</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="inv-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SETTINGS / SUBSCRIPTIONS -->
+      <section id="view-settings" style="display:none;">
+        <div class="toprow">
+          <div>
+            <h2 class="title">Subscriptions</h2>
+            <p class="subtitle">Plan, billing status, and service entitlements (stub UI included).</p>
+          </div>
+        </div>
+
+        <div class="grid-cards" style="grid-template-columns: repeat(2, minmax(0,1fr));">
+          <div class="card">
+            <div class="k">Plan</div>
+            <div id="sub-plan" class="v" style="font-size:22px;">—</div>
+            <div class="muted" style="font-size:12px; margin-top:10px;">Pulled from <span class="mono">subscriptions</span> if present.</div>
+          </div>
+          <div class="card">
+            <div class="k">Status</div>
+            <div id="sub-status" class="v" style="font-size:22px;">—</div>
+            <div class="muted" style="font-size:12px; margin-top:10px;">RLS-controlled.</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px;">
+          <div class="k">Account Controls</div>
+          <div class="row" style="margin-top:12px;">
+            <button class="btn-ghost" onclick="Ark.createDefaultAccountsIfNone()"><i class="fa-solid fa-seedling"></i>Create Default Accounts</button>
+            <button class="btn-ghost" onclick="Ark.refreshAll()"><i class="fa-solid fa-arrows-rotate"></i>Refresh All</button>
+          </div>
+          <div class="muted" style="font-size:12px; margin-top:10px; line-height:1.35;">
+            If you want enterprise orgs + true RBAC, add an <span class="mono">org_members</span> table and load role from there.
+            This UI is ready for it.
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 
-  <!-- COMPOSE MODAL -->
-  <div id="modal" class="modal" onclick="Ark.backdrop(event)">
-    <div class="sheet" role="dialog" aria-modal="true" aria-label="Entry Composer">
+  <!-- MODAL -->
+  <div id="modal" class="modal" onclick="Ark.modalBackdrop(event)">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Composer">
       <div class="sheethead">
         <div>
-          <h4 id="modal-title">New Entry</h4>
-          <div class="muted" style="font-size:12px;margin-top:4px;">Create transactions and transfers with full audit fields.</div>
+          <h4 id="modal-title">Compose</h4>
+          <div class="muted" style="font-size:12px;margin-top:4px;" id="modal-sub">—</div>
         </div>
-        <button class="btn" onclick="Ark.closeCompose()"><i class="fa-solid fa-xmark"></i></button>
+        <button class="btn-ghost btn-mini" onclick="Ark.closeCompose()"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="sheetbody">
-        <div class="seg">
-          <button id="seg-transaction" class="active" onclick="Ark.switchCompose('transaction')">Transaction</button>
-          <button id="seg-transfer" onclick="Ark.switchCompose('transfer')">Transfer</button>
+        <!-- Segments only for Ledger compose -->
+        <div id="seg-ledger" class="seg" style="display:none;">
+          <button id="seg-transaction" class="active" onclick="Ark.switchComposeMode('transaction')">Transaction</button>
+          <button id="seg-transfer" onclick="Ark.switchComposeMode('transfer')">Transfer</button>
         </div>
 
-        <div id="mode-transaction">
-          <div class="label" style="margin-top:6px;">Transaction details</div>
+        <!-- Transaction -->
+        <div id="mode-transaction" style="display:none;">
+          <div class="label">Transaction details</div>
           <input id="t-desc" class="input" type="text" placeholder="Description (e.g., Payroll, Groceries)" />
           <input id="t-amt" class="input" type="number" step="0.01" placeholder="Amount (Deposit +, Withdrawal -)" />
           <select id="t-status" class="select">
             <option value="POSTED">POSTED</option>
             <option value="PENDING">PENDING</option>
           </select>
-
-          <button class="btn primary" onclick="Ark.saveTransaction()">
-            <i class="fa-solid fa-check"></i> Post Entry
-          </button>
+          <button class="btn-elite" onclick="Ark.saveTransaction()"><i class="fa-solid fa-check"></i>Post Entry</button>
         </div>
 
+        <!-- Transfer -->
         <div id="mode-transfer" style="display:none;">
-          <div class="label" style="margin-top:6px;">Transfer details</div>
+          <div class="label">Transfer details</div>
           <select id="x-from" class="select"></select>
           <select id="x-to" class="select"></select>
           <input id="x-amt" class="input" type="number" step="0.01" placeholder="Amount (positive number)" />
           <input id="x-desc" class="input" type="text" placeholder="Memo (optional)" />
+          <button class="btn-elite" onclick="Ark.saveTransfer()"><i class="fa-solid fa-right-left"></i>Execute Transfer</button>
+        </div>
 
-          <button class="btn primary" onclick="Ark.saveTransfer()">
-            <i class="fa-solid fa-right-left"></i> Execute Transfer
-          </button>
+        <!-- Pantry -->
+        <div id="mode-pantry" style="display:none;">
+          <div class="label">Inventory item</div>
+          <input id="p-name" class="input" type="text" placeholder="Item name (e.g., Whole Bean Coffee)" />
+          <input id="p-unit" class="input" type="text" placeholder="Unit (e.g., g, pcs, bottles)" />
+          <div class="row">
+            <input id="p-qty" class="input" type="number" step="0.01" placeholder="Current qty" />
+            <input id="p-par" class="input" type="number" step="0.01" placeholder="Reorder below (par)" />
+          </div>
+          <button class="btn-elite" onclick="Ark.savePantryItem()"><i class="fa-solid fa-box"></i>Save Item</button>
+        </div>
+
+        <!-- Invoice -->
+        <div id="mode-invoice" style="display:none;">
+          <div class="label">Invoice</div>
+          <div class="row">
+            <input id="i-number" class="input" type="text" placeholder="Invoice # (e.g., INV-1007)" />
+            <input id="i-client" class="input" type="text" placeholder="Client name" />
+          </div>
+          <input id="i-desc" class="input" type="text" placeholder="Description (e.g., Consulting services)" />
+          <div class="row">
+            <input id="i-total" class="input" type="number" step="0.01" placeholder="Total amount" />
+            <select id="i-status" class="select">
+              <option value="DRAFT">DRAFT</option>
+              <option value="SENT">SENT</option>
+              <option value="PAID">PAID</option>
+              <option value="VOID">VOID</option>
+            </select>
+          </div>
+          <button class="btn-elite" onclick="Ark.saveInvoice()"><i class="fa-solid fa-file-invoice"></i>Save Invoice</button>
         </div>
 
         <div id="modal-error" class="err"></div>
@@ -1027,134 +675,53 @@
     </div>
   </div>
 
-  <!-- TRANSACTION DETAIL DRAWER -->
-  <div id="drawer" class="drawer" aria-label="Transaction details">
-    <div class="drawerHead">
-      <div class="drawerTitle">
-        <h3 id="d-title">Transaction</h3>
-        <p id="d-sub">—</p>
-      </div>
-      <div style="display:flex; gap:10px; align-items:center;">
-        <button class="btn" onclick="Ark.copyRef()"><i class="fa-solid fa-copy"></i> Copy Ref</button>
-        <button class="btn" onclick="Ark.closeDrawer()"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-    </div>
-
-    <div class="drawerBody">
-      <div class="twoCol">
-        <div class="mini">
-          <div class="k">Reference</div>
-          <div class="v" id="d-ref">—</div>
-        </div>
-        <div class="mini">
-          <div class="k">Status</div>
-          <div class="v" id="d-status">—</div>
-        </div>
-      </div>
-
-      <div class="twoCol">
-        <div class="mini">
-          <div class="k">Amount</div>
-          <div class="v big" id="d-amount">—</div>
-        </div>
-        <div class="mini">
-          <div class="k">Date</div>
-          <div class="v" id="d-date">—</div>
-        </div>
-      </div>
-
-      <div class="mini">
-        <div class="k">Description</div>
-        <div class="v" id="d-desc" style="white-space:normal; line-height:1.35;">—</div>
-      </div>
-
-      <div class="twoCol">
-        <div class="mini">
-          <div class="k">Account</div>
-          <div class="v" id="d-acct">—</div>
-        </div>
-        <div class="mini">
-          <div class="k">Account ID</div>
-          <div class="v" id="d-acctid">—</div>
-        </div>
-      </div>
-
-      <div class="mini">
-        <div class="k">Timestamps</div>
-        <div class="v" id="d-ts">—</div>
-      </div>
-
-      <div class="mini">
-        <div class="k">Actions</div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn danger" onclick="Ark.openDispute()"><i class="fa-solid fa-triangle-exclamation"></i> File Dispute</button>
-          <button class="btn" onclick="Ark.togglePending()"><i class="fa-solid fa-hourglass-half"></i> Toggle Pending</button>
-          <button class="btn" onclick="Ark.deleteTx()"><i class="fa-solid fa-trash"></i> Delete</button>
-        </div>
-        <div class="hint">
-          Disputes are recorded as a separate item (optional) if your server has a <span class="mono">disputes</span> table.
-          If not, ARK Vord will export a dispute receipt locally.
-        </div>
-      </div>
-
-      <div id="disputeBox" class="mini" style="display:none;">
-        <div class="k">Dispute Form</div>
-        <select id="dp-reason" class="select">
-          <option value="UNRECOGNIZED">Unrecognized transaction</option>
-          <option value="DUPLICATE">Duplicate charge</option>
-          <option value="WRONG_AMOUNT">Wrong amount</option>
-          <option value="SERVICE_NOT_RECEIVED">Service not received</option>
-          <option value="OTHER">Other</option>
-        </select>
-        <input id="dp-amount" class="input" type="number" step="0.01" placeholder="Disputed amount (optional)" />
-        <textarea id="dp-notes" class="textarea" placeholder="Explain what happened (details help)."></textarea>
-
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn primary" onclick="Ark.submitDispute()"><i class="fa-solid fa-paper-plane"></i> Submit Dispute</button>
-          <button class="btn" onclick="Ark.closeDispute()"><i class="fa-solid fa-xmark"></i> Cancel</button>
-        </div>
-
-        <div id="dp-error" class="err"></div>
-      </div>
-    </div>
-  </div>
-
   <script>
-    /***********************
-     * ARK Vord 1.6
-     * Tables expected:
-     *  - accounts(id, user_id, name, type, created_at)
-     *  - transactions(id, user_id, account_id, amount, description, status, created_at)
+    /**********************************************************
+     * ARK Vord 8.0 Full
+     * - Supabase Auth (email/password)
+     * - Ledger: accounts + transactions (+ transfers)
+     * - Pantry: pantry_items
+     * - Invoices: invoices
+     * - Subscriptions: subscriptions (optional)
      *
-     * Optional table for disputes (if you want it server-side):
-     *  - disputes(id uuid default uuid_generate_v4(),
-     *            user_id uuid, transaction_id uuid, account_id uuid,
-     *            reason text, amount numeric, notes text, created_at timestamptz default now())
-     ************************/
+     * IMPORTANT: Replace SUPABASE_URL and SUPABASE_KEY with yours.
+     * The key should be the public "anon" key; security is enforced via RLS.
+     **********************************************************/
 
     // --- SUPABASE CONFIGURATION ---
     const SUPABASE_URL = "https://cumebdvojadpxaxdmabb.supabase.co";
     const SUPABASE_KEY = "sb_publishable_uTgHvSCKusJCK8aSfejzbw_Oxket8q2";
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const money = (n) => {
+    const fmt = (n) => {
       const v = Number(n || 0);
       return v.toLocaleString(undefined, { style:"currency", currency:"USD" });
     };
 
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
     const Ark = {
       user: null,
-      accounts: [],
-      tx: [],
-      activeAccountId: null,
-      filter: "ALL",
-      selectedTx: null,
+      role: "Authenticated",
+      activeTab: "ledger",
 
-      // ---------- Session ----------
+      // data
+      accounts: [],
+      activeAccountId: null,
+
+      tx: [],
+      pantry: [],
+      invoices: [],
+      subscription: null,
+
+      composeMode: null, // transaction/transfer/pantry/invoice
+
+      /* ---------------- Session ---------------- */
       async checkSession(showErrors=false){
         try{
           const { data, error } = await sb.auth.getSession();
           if (error) throw error;
+
           if (data?.session?.user){
             this.user = data.session.user;
             await this.initApp();
@@ -1172,25 +739,26 @@
         const email = (document.getElementById("login-email").value || "").trim();
         const pass  = document.getElementById("login-pass").value || "";
 
-        if(!email || !pass){
-          return this.showLoginError("Enter email and password.");
-        }
+        if(!email || !pass) return this.showLoginError("Enter email and password.");
 
         const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-        if (error){
-          return this.showLoginError(error.message || "Sign-in failed.");
-        }
+        if (error) return this.showLoginError(error.message || "Sign-in failed.");
+
         this.user = data.user;
         await this.initApp();
       },
 
       async logout(){
-        this.closeDrawer();
         await sb.auth.signOut();
         this.user = null;
+
+        // wipe
         this.accounts = [];
-        this.tx = [];
         this.activeAccountId = null;
+        this.tx = [];
+        this.pantry = [];
+        this.invoices = [];
+        this.subscription = null;
 
         document.getElementById("app").style.display = "none";
         document.getElementById("gate").style.display = "flex";
@@ -1198,33 +766,62 @@
         document.getElementById("login-pass").value = "";
       },
 
-      // ---------- Init ----------
+      /* ---------------- Init ---------------- */
       async initApp(){
         document.getElementById("gate").style.display = "none";
         document.getElementById("app").style.display = "grid";
 
-        // User UI
-        const email = this.user?.email || "—";
-        const username = (email.includes("@") ? email.split("@")[0] : email) || "—";
-        document.getElementById("ui-username").textContent = username;
-        document.getElementById("ui-email").textContent = email;
-        document.getElementById("ui-clientid").textContent = this.maskId(this.user?.id || "");
-        document.getElementById("ui-session").textContent = new Date().toLocaleString();
-        document.getElementById("ui-time").textContent = new Date().toLocaleString();
+        document.getElementById("who").textContent = this.user?.email || this.user?.id || "Session";
+        document.getElementById("when").textContent = new Date().toLocaleString();
+        document.getElementById("ui-clientid").textContent = (this.user?.id || "—").slice(0, 12);
 
+        await this.loadRole();
         await this.loadAccounts();
 
-        // Create defaults if none exist
         if (!this.accounts.length){
-          await this.createDefaultAccounts();
+          // optional convenience (same behavior as v1.6)
+          await this.createDefaultAccountsIfNone();
           await this.loadAccounts();
         }
 
         this.activeAccountId = this.accounts[0]?.id || null;
         this.paintAccountPickers();
-        await this.refresh();
+
+        // default tab
+        this.switchTab("ledger", document.querySelector(".nav-item"));
+
+        await this.refreshAll();
       },
 
+      async loadRole(){
+        // If you add org/rbac later, replace this with a query.
+        // Example if you create org_members: select role where user_id = auth.uid()
+        this.role = "Authenticated";
+        const badge = document.getElementById("role-display");
+        badge.innerHTML = `<i class="fa-solid fa-shield-halved"></i><span>${this.escape(this.role)}</span>`;
+      },
+
+      /* ---------------- Navigation ---------------- */
+      switchTab(tabId, el){
+        this.activeTab = tabId;
+
+        document.querySelectorAll('main > section').forEach(s => s.style.display = 'none');
+        const view = document.getElementById('view-' + tabId);
+        if (view) view.style.display = 'block';
+
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if (el) el.classList.add('active');
+
+        // update subheads
+        const active = this.accounts.find(a => a.id === this.activeAccountId);
+        const sub = active ? `${active.name} • ${active.type}` : "—";
+        document.getElementById("ledger-sub").textContent = sub;
+
+        // render current tab immediately
+        this.renderAll();
+      },
+
+      /* ---------------- Accounts ---------------- */
       async loadAccounts(){
         const { data, error } = await sb
           .from("accounts")
@@ -1238,12 +835,18 @@
         this.accounts = data || [];
       },
 
-      async createDefaultAccounts(){
+      async createDefaultAccountsIfNone(){
+        // only create if truly none (avoid duplicates)
+        if (this.accounts.length) return;
+
+        if (!this.user?.id) return;
         const uid = this.user.id;
+
         const payload = [
           { user_id: uid, name: "Primary Checking", type: "CHECKING" },
           { user_id: uid, name: "Primary Savings", type: "SAVINGS" }
         ];
+
         const { error } = await sb.from("accounts").insert(payload);
         if (error) console.error(error);
       },
@@ -1256,7 +859,7 @@
         };
         picker.innerHTML = this.accounts.map(mk).join("");
 
-        // compose selects
+        // composer transfer selects
         const from = document.getElementById("x-from");
         const to = document.getElementById("x-to");
         from.innerHTML = this.accounts.map(mk).join("");
@@ -1265,28 +868,31 @@
         if (this.activeAccountId){
           picker.value = this.activeAccountId;
           from.value = this.activeAccountId;
+
           const other = this.accounts.find(a => a.id !== this.activeAccountId);
           if (other) to.value = other.id;
         }
-
-        // account info (display-only)
-        const acct = this.accounts.find(a => a.id === this.activeAccountId) || this.accounts[0];
-        document.getElementById("subhead").textContent =
-          acct ? `${acct.name} • ${acct.type} • Click any transaction to view details.` : "Balances and recent activity.";
-
-        document.getElementById("ui-acctno").textContent = acct ? this.accountNumberFromUUID(acct.id) : "—";
       },
 
       async setActiveAccount(id){
-        this.closeDrawer();
         this.activeAccountId = id;
         this.paintAccountPickers();
-        await this.refresh();
+        await this.refreshAll();
       },
 
-      // ---------- Data ----------
-      async refresh(){
-        if (!this.activeAccountId) return;
+      /* ---------------- Refresh ---------------- */
+      async refreshAll(){
+        await Promise.all([
+          this.refreshLedger(),
+          this.refreshPantry(),
+          this.refreshInvoices(),
+          this.refreshSubscriptions()
+        ]);
+        this.renderAll();
+      },
+
+      async refreshLedger(){
+        if (!this.activeAccountId) { this.tx = []; return; }
 
         const { data, error } = await sb
           .from("transactions")
@@ -1296,114 +902,263 @@
 
         if (error){
           console.error(error);
+          this.tx = [];
           return;
         }
         this.tx = data || [];
-        this.render();
       },
 
-      compute(){
-        let deposits = 0, withdrawals = 0, postedBal = 0, pendingNet = 0;
+      async refreshPantry(){
+        if (!this.activeAccountId) { this.pantry = []; return; }
+
+        const { data, error } = await sb
+          .from("pantry_items")
+          .select("*")
+          .eq("account_id", this.activeAccountId)
+          .order("created_at", { ascending: false });
+
+        if (error){
+          // if table not created yet, fail gracefully
+          console.warn("pantry_items:", error.message);
+          this.pantry = [];
+          return;
+        }
+        this.pantry = data || [];
+      },
+
+      async refreshInvoices(){
+        if (!this.activeAccountId) { this.invoices = []; return; }
+
+        const { data, error } = await sb
+          .from("invoices")
+          .select("*")
+          .eq("account_id", this.activeAccountId)
+          .order("created_at", { ascending: false });
+
+        if (error){
+          console.warn("invoices:", error.message);
+          this.invoices = [];
+          return;
+        }
+        this.invoices = data || [];
+      },
+
+      async refreshSubscriptions(){
+        // optional table, ignore if missing
+        if (!this.user?.id) return;
+
+        const { data, error } = await sb
+          .from("subscriptions")
+          .select("*")
+          .eq("user_id", this.user.id)
+          .maybeSingle?.() ?? await sb.from("subscriptions").select("*").eq("user_id", this.user.id).limit(1).single();
+
+        if (error){
+          document.getElementById("sub-plan").textContent = "—";
+          document.getElementById("sub-status").textContent = "—";
+          this.subscription = null;
+          return;
+        }
+        this.subscription = data || null;
+      },
+
+      /* ---------------- Compute + Render ---------------- */
+      computeLedger(){
+        let postedBalance = 0;
+        let pendingOutflow = 0;
 
         for (const t of this.tx){
           const amt = Number(t.amount);
           if (!Number.isFinite(amt)) continue;
 
-          if (amt > 0) deposits += amt;
-          if (amt < 0) withdrawals += Math.abs(amt);
+          const status = String(t.status || "POSTED").toUpperCase();
+          if (status === "POSTED") postedBalance += amt;
 
-          if ((t.status || "POSTED").toUpperCase() === "PENDING") pendingNet += amt;
-          if ((t.status || "POSTED").toUpperCase() === "POSTED") postedBal += amt;
+          if (status === "PENDING" && amt < 0) pendingOutflow += Math.abs(amt);
         }
-        return { deposits, withdrawals, postedBal, pendingNet };
+
+        const available = postedBalance - pendingOutflow;
+        return { postedBalance, pendingOutflow, available };
       },
 
-      setFilter(f){
-        this.filter = f;
-        for (const id of ["f-all","f-posted","f-pending","f-dep","f-wdr"]) {
-          document.getElementById(id).classList.remove("active");
-        }
-        const map = {ALL:"f-all", POSTED:"f-posted", PENDING:"f-pending", DEPOSITS:"f-dep", WITHDRAWALS:"f-wdr"};
-        document.getElementById(map[f]).classList.add("active");
-        this.render();
+      renderAll(){
+        this.renderLedger();
+        this.renderPantry();
+        this.renderInvoices();
+        this.renderSubscriptions();
       },
 
-      filteredTx(){
-        const q = (document.getElementById("search").value || "").trim().toLowerCase();
-        return this.tx.filter(t => {
-          const status = (t.status || "POSTED").toUpperCase();
-          const amt = Number(t.amount || 0);
+      renderLedger(){
+        const { postedBalance, pendingOutflow, available } = this.computeLedger();
 
-          // filter chip
-          if (this.filter === "POSTED" && status !== "POSTED") return false;
-          if (this.filter === "PENDING" && status !== "PENDING") return false;
-          if (this.filter === "DEPOSITS" && !(amt > 0)) return false;
-          if (this.filter === "WITHDRAWALS" && !(amt < 0)) return false;
-
-          if (!q) return true;
-          const ref = (t.id || "").slice(0,8).toLowerCase();
-          const desc = (t.description || "").toLowerCase();
-          return ref.includes(q) || desc.includes(q) || status.toLowerCase().includes(q);
-        });
-      },
-
-      render(){
-        const { deposits, withdrawals, postedBal, pendingNet } = this.compute();
-        document.getElementById("v-dep").textContent = money(deposits);
-        document.getElementById("v-wdr").textContent = money(withdrawals);
-        document.getElementById("v-bal").textContent = money(postedBal);
-        document.getElementById("v-pend").textContent = money(pendingNet);
+        document.getElementById("v-bal").textContent = fmt(postedBalance);
+        document.getElementById("v-pend").textContent = fmt(pendingOutflow);
+        document.getElementById("v-avail").textContent = fmt(available);
 
         const body = document.getElementById("tx-body");
         body.innerHTML = "";
 
-        const rows = this.filteredTx();
-        if (!rows.length){
+        if (!this.tx.length){
           body.innerHTML = `
             <tr>
-              <td colspan="5" class="muted" style="padding:18px 14px;">
-                No transactions match your current filter/search.
+              <td colspan="5" class="muted" style="padding:16px 12px; font-family:Inter, sans-serif;">
+                No transactions found for this account.
               </td>
             </tr>`;
           return;
         }
 
-        for (const t of rows){
+        for (const t of this.tx){
           const ref = (t.id || "").toString().slice(0, 8).toUpperCase();
           const date = t.created_at ? new Date(t.created_at).toLocaleDateString() : "—";
           const desc = this.escape(t.description || "—");
-          const amt = Number(t.amount || 0);
-          const amtClass = amt >= 0 ? "pos" : "neg";
-          const amtText = `${amt >= 0 ? "+" : "-"}${money(Math.abs(amt))}`;
           const status = (t.status || "POSTED").toUpperCase();
           const dot = status === "PENDING" ? "pending" : "posted";
 
+          const amt = Number(t.amount || 0);
+          const cls = amt >= 0 ? "money-pos" : "money-neg";
+          const amtText = `${amt >= 0 ? "+" : "-"}${fmt(Math.abs(amt))}`;
+
           body.innerHTML += `
-            <tr onclick="Ark.openDrawer('${this.escapeAttr(t.id)}')">
-              <td class="mono">${ref}</td>
+            <tr>
+              <td>${ref}</td>
               <td>${date}</td>
-              <td style="max-width:520px; overflow:hidden; text-overflow:ellipsis;">
+              <td style="font-family:Inter, sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:420px;">
                 <strong>${desc}</strong>
               </td>
-              <td class="amt ${amtClass}">${amtText}</td>
               <td><span class="tag"><span class="dot ${dot}"></span>${status}</span></td>
+              <td class="${cls}">${amtText}</td>
             </tr>`;
         }
       },
 
-      // ---------- Compose (New Transaction / Transfer) ----------
-      openCompose(kind){
+      renderPantry(){
+        const wrap = document.getElementById("pantry-list");
+        wrap.innerHTML = "";
+
+        if (!this.pantry.length){
+          wrap.innerHTML = `
+            <div class="inventory-card">
+              <div class="muted" style="font-size:12px; line-height:1.45;">
+                No inventory items yet. Click <strong>Add Item</strong>.
+                <div style="margin-top:10px; opacity:.9;">
+                  If you haven't created the <span class="mono">pantry_items</span> table yet,
+                  you'll see this empty state (that's OK).
+                </div>
+              </div>
+            </div>`;
+          return;
+        }
+
+        for (const it of this.pantry){
+          const name = this.escape(it.name || "—");
+          const unit = this.escape(it.unit || "");
+          const qty = Number(it.qty ?? 0);
+          const par = Number(it.par ?? 0);
+
+          const pct = (par > 0) ? clamp((qty / par) * 100, 0, 120) : 100;
+          const low = (par > 0 && qty < par);
+
+          wrap.innerHTML += `
+            <div class="inventory-card">
+              <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+                <div style="min-width:0;">
+                  <div style="font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</div>
+                  <div class="muted" style="font-size:12px; margin-top:6px;">
+                    ${this.escape(String(qty))}${unit ? " " + unit : ""}${par ? ` • par ${this.escape(String(par))}${unit ? " " + unit : ""}` : ""}
+                  </div>
+                </div>
+                <button class="btn-ghost btn-mini" onclick="Ark.deletePantry('${it.id}')">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+
+              <div class="stock-bar">
+                <div class="stock-fill ${low ? "stock-low" : ""}" style="width:${pct}%;"></div>
+              </div>
+
+              <div class="muted" style="font-size:12px; margin-top:10px;">
+                ${low ? `<span style="color:var(--accent-ruby); font-weight:900;">Low stock</span>` : `<span style="color:var(--accent-emerald); font-weight:900;">OK</span>`}
+              </div>
+            </div>`;
+        }
+      },
+
+      renderInvoices(){
+        const body = document.getElementById("inv-body");
+        body.innerHTML = "";
+
+        if (!this.invoices.length){
+          body.innerHTML = `
+            <tr>
+              <td colspan="5" class="muted" style="padding:16px 12px; font-family:Inter, sans-serif;">
+                No invoices yet. Click <strong>New Invoice</strong>.
+              </td>
+            </tr>`;
+          return;
+        }
+
+        for (const inv of this.invoices){
+          const num = this.escape(inv.number || (inv.id || "").slice(0,8).toUpperCase());
+          const date = inv.created_at ? new Date(inv.created_at).toLocaleDateString() : "—";
+          const client = this.escape(inv.client || "—");
+          const status = String(inv.status || "DRAFT").toUpperCase();
+          const total = Number(inv.total ?? 0);
+
+          const dot = (status === "PAID") ? "posted" : (status === "SENT") ? "pending" : "";
+          const moneyCls = total >= 0 ? "money-pos" : "money-neg";
+
+          body.innerHTML += `
+            <tr>
+              <td>${num}</td>
+              <td>${date}</td>
+              <td style="font-family:Inter, sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:360px;">
+                <strong>${client}</strong>
+              </td>
+              <td><span class="tag"><span class="dot ${dot}"></span>${status}</span></td>
+              <td class="${moneyCls}">${fmt(total)}</td>
+            </tr>`;
+        }
+      },
+
+      renderSubscriptions(){
+        if (!this.subscription){
+          document.getElementById("sub-plan").textContent = "—";
+          document.getElementById("sub-status").textContent = "—";
+          return;
+        }
+        document.getElementById("sub-plan").textContent = this.subscription.plan || "—";
+        document.getElementById("sub-status").textContent = this.subscription.status || "—";
+      },
+
+      /* ---------------- Composer ---------------- */
+      openCompose(mode){
         this.clearModalError();
-        this.switchCompose(kind || "transaction");
 
-        document.getElementById("t-desc").value = "";
-        document.getElementById("t-amt").value = "";
-        document.getElementById("t-status").value = "POSTED";
+        // reset fields
+        ["t-desc","t-amt","x-amt","x-desc","p-name","p-unit","p-qty","p-par","i-number","i-client","i-desc","i-total"].forEach(id=>{
+          const el = document.getElementById(id);
+          if (el) el.value = "";
+        });
+        const ts = document.getElementById("t-status");
+        if (ts) ts.value = "POSTED";
+        const is = document.getElementById("i-status");
+        if (is) is.value = "DRAFT";
 
-        document.getElementById("x-amt").value = "";
-        document.getElementById("x-desc").value = "";
+        // ledger segment visibility
+        const seg = document.getElementById("seg-ledger");
+        seg.style.display = (mode === "transaction" || mode === "transfer") ? "flex" : "none";
 
+        // set selects
         this.paintAccountPickers();
+
+        // activate
+        if (mode === "transaction" || mode === "transfer") {
+          this.switchComposeMode(mode);
+        } else {
+          this.switchComposeMode(mode);
+        }
+
         document.getElementById("modal").style.display = "flex";
       },
 
@@ -1411,32 +1166,59 @@
         document.getElementById("modal").style.display = "none";
       },
 
-      backdrop(e){
+      modalBackdrop(e){
         if (e.target && e.target.id === "modal") this.closeCompose();
       },
 
-      switchCompose(mode){
+      switchComposeMode(mode){
+        this.composeMode = mode;
+
+        // segments
         const segT = document.getElementById("seg-transaction");
         const segX = document.getElementById("seg-transfer");
-        const mT = document.getElementById("mode-transaction");
-        const mX = document.getElementById("mode-transfer");
-        const title = document.getElementById("modal-title");
+        if (segT && segX){
+          if (mode === "transfer"){
+            segT.classList.remove("active");
+            segX.classList.add("active");
+          } else if (mode === "transaction") {
+            segX.classList.remove("active");
+            segT.classList.add("active");
+          }
+        }
 
-        if (mode === "transfer"){
-          segT.classList.remove("active");
-          segX.classList.add("active");
-          mT.style.display = "none";
-          mX.style.display = "block";
-          title.textContent = "Transfer Funds";
+        // hide all modes
+        ["mode-transaction","mode-transfer","mode-pantry","mode-invoice"].forEach(id=>{
+          const el = document.getElementById(id);
+          if (el) el.style.display = "none";
+        });
+
+        // show active
+        const showId = "mode-" + mode;
+        const show = document.getElementById(showId);
+        if (show) show.style.display = "block";
+
+        // titles
+        const t = document.getElementById("modal-title");
+        const s = document.getElementById("modal-sub");
+        if (mode === "transaction"){
+          t.textContent = "New Transaction";
+          s.textContent = "Deposit or withdrawal (active account).";
+        } else if (mode === "transfer"){
+          t.textContent = "Transfer Funds";
+          s.textContent = "Creates two posted entries (out/in).";
+        } else if (mode === "pantry"){
+          t.textContent = "Add Inventory Item";
+          s.textContent = "Track stock levels with optional par.";
+        } else if (mode === "invoice"){
+          t.textContent = "Create Invoice";
+          s.textContent = "Issue and track invoice lifecycle.";
         } else {
-          segX.classList.remove("active");
-          segT.classList.add("active");
-          mX.style.display = "none";
-          mT.style.display = "block";
-          title.textContent = "New Transaction";
+          t.textContent = "Compose";
+          s.textContent = "—";
         }
       },
 
+      /* ---------------- Writes ---------------- */
       async saveTransaction(){
         this.clearModalError();
 
@@ -1445,6 +1227,8 @@
         const status = document.getElementById("t-status").value;
 
         const amt = Number(amtRaw);
+
+        if(!this.activeAccountId) return this.modalError("No active account.");
         if (!desc) return this.modalError("Description is required.");
         if (!Number.isFinite(amt) || amt === 0) return this.modalError("Enter a valid non-zero amount.");
 
@@ -1460,7 +1244,8 @@
         if (error) return this.modalError(error.message || "Insert failed.");
 
         this.closeCompose();
-        await this.refresh();
+        await this.refreshLedger();
+        this.renderLedger();
       },
 
       async saveTransfer(){
@@ -1472,6 +1257,7 @@
         const memo = (document.getElementById("x-desc").value || "").trim();
 
         const amt = Number(amtRaw);
+
         if (!fromId || !toId) return this.modalError("Choose both accounts.");
         if (fromId === toId) return this.modalError("From/To accounts must be different.");
         if (!Number.isFinite(amt) || amt <= 0) return this.modalError("Enter a positive amount.");
@@ -1489,173 +1275,95 @@
 
         this.closeCompose();
         if (this.activeAccountId === fromId || this.activeAccountId === toId){
-          await this.refresh();
+          await this.refreshLedger();
+          this.renderLedger();
         }
       },
 
-      // ---------- Transaction Detail Drawer ----------
-      openDrawer(txId){
-        const t = this.tx.find(x => x.id === txId);
-        if (!t) return;
+      async savePantryItem(){
+        this.clearModalError();
 
-        this.selectedTx = t;
-        document.getElementById("disputeBox").style.display = "none";
-        document.getElementById("dp-error").style.display = "none";
-        document.getElementById("dp-error").textContent = "";
+        if(!this.activeAccountId) return this.modalError("No active account.");
 
-        const ref = (t.id || "").slice(0,8).toUpperCase();
-        const status = (t.status || "POSTED").toUpperCase();
-        const dotCls = status === "PENDING" ? "pending" : "posted";
-        const amt = Number(t.amount || 0);
+        const name = (document.getElementById("p-name").value || "").trim();
+        const unit = (document.getElementById("p-unit").value || "").trim();
+        const qty = Number(document.getElementById("p-qty").value);
+        const par = Number(document.getElementById("p-par").value);
 
-        const acct = this.accounts.find(a => a.id === t.account_id);
-        const acctLabel = acct ? `${acct.name} • ${acct.type}` : "—";
-
-        document.getElementById("d-title").textContent = amt >= 0 ? "Deposit" : "Withdrawal";
-        document.getElementById("d-sub").textContent = `${acctLabel} • Ref ${ref}`;
-
-        document.getElementById("d-ref").textContent = ref;
-        document.getElementById("d-status").innerHTML = `<span class="tag"><span class="dot ${dotCls}"></span>${status}</span>`;
-        document.getElementById("d-amount").innerHTML = `<span class="${amt>=0?'amt pos':'amt neg'}">${amt>=0?'+':'-'}${money(Math.abs(amt))}</span>`;
-        document.getElementById("d-date").textContent = t.created_at ? new Date(t.created_at).toLocaleString() : "—";
-        document.getElementById("d-desc").textContent = t.description || "—";
-        document.getElementById("d-acct").textContent = acctLabel;
-        document.getElementById("d-acctid").textContent = t.account_id || "—";
-        document.getElementById("d-ts").textContent = `created_at: ${t.created_at ? new Date(t.created_at).toISOString() : "—"}`;
-
-        document.getElementById("drawer").style.display = "flex";
-      },
-
-      closeDrawer(){
-        document.getElementById("drawer").style.display = "none";
-        this.selectedTx = null;
-      },
-
-      copyRef(){
-        if (!this.selectedTx) return;
-        const ref = (this.selectedTx.id || "").slice(0,8).toUpperCase();
-        navigator.clipboard?.writeText(ref);
-      },
-
-      async togglePending(){
-        if (!this.selectedTx) return;
-        const current = (this.selectedTx.status || "POSTED").toUpperCase();
-        const next = current === "PENDING" ? "POSTED" : "PENDING";
-
-        const { error } = await sb
-          .from("transactions")
-          .update({ status: next })
-          .eq("id", this.selectedTx.id);
-
-        if (error) return alert("Update failed: " + error.message);
-
-        await this.refresh();
-        this.openDrawer(this.selectedTx.id);
-      },
-
-      async deleteTx(){
-        if (!this.selectedTx) return;
-        const ref = (this.selectedTx.id || "").slice(0,8).toUpperCase();
-        if (!confirm(`Delete transaction ${ref}? This cannot be undone.`)) return;
-
-        const { error } = await sb
-          .from("transactions")
-          .delete()
-          .eq("id", this.selectedTx.id);
-
-        if (error) return alert("Delete failed: " + error.message);
-
-        this.closeDrawer();
-        await this.refresh();
-      },
-
-      // ---------- Disputes ----------
-      openDispute(){
-        if (!this.selectedTx) return;
-        document.getElementById("disputeBox").style.display = "block";
-        document.getElementById("dp-reason").value = "UNRECOGNIZED";
-        document.getElementById("dp-amount").value = "";
-        document.getElementById("dp-notes").value = "";
-        document.getElementById("dp-error").style.display = "none";
-        document.getElementById("dp-error").textContent = "";
-      },
-
-      closeDispute(){
-        document.getElementById("disputeBox").style.display = "none";
-      },
-
-      async submitDispute(){
-        if (!this.selectedTx) return;
-
-        const reason = document.getElementById("dp-reason").value;
-        const amtRaw = document.getElementById("dp-amount").value;
-        const notes = (document.getElementById("dp-notes").value || "").trim();
-
-        const amt = amtRaw ? Number(amtRaw) : null;
-        if (amtRaw && !Number.isFinite(amt)) return this.dpError("Disputed amount must be a number.");
-        if (!notes) return this.dpError("Please describe the issue (notes are required).");
+        if (!name) return this.modalError("Item name is required.");
+        if (!Number.isFinite(qty)) return this.modalError("Enter a valid quantity.");
+        if (document.getElementById("p-par").value && !Number.isFinite(par)) return this.modalError("Enter a valid par level.");
 
         const payload = {
           user_id: this.user.id,
-          transaction_id: this.selectedTx.id,
-          account_id: this.selectedTx.account_id,
-          reason,
-          amount: amt,
-          notes
+          account_id: this.activeAccountId,
+          name,
+          unit: unit || null,
+          qty,
+          par: document.getElementById("p-par").value ? par : null
         };
 
-        // Try to save to a `disputes` table if it exists.
-        // If it doesn't exist, we export a local "dispute receipt" JSON so you still have a record.
-        try{
-          const { error } = await sb.from("disputes").insert([payload]);
-          if (!error){
-            alert("Dispute submitted (saved to DB).");
-            this.closeDispute();
-            return;
-          }
-          // Fall through to local receipt if table/policy fails
-          this.exportDisputeReceipt(payload, error.message || "DB insert failed");
-        }catch(e){
-          this.exportDisputeReceipt(payload, e?.message || "Unknown error");
+        const { error } = await sb.from("pantry_items").insert([payload]);
+        if (error) return this.modalError(error.message || "Insert failed. (Create pantry_items table + RLS?)");
+
+        this.closeCompose();
+        await this.refreshPantry();
+        this.renderPantry();
+      },
+
+      async deletePantry(id){
+        const { error } = await sb.from("pantry_items").delete().eq("id", id);
+        if (error){
+          console.error(error);
+          return;
         }
+        await this.refreshPantry();
+        this.renderPantry();
       },
 
-      exportDisputeReceipt(payload, why){
-        const ref = (payload.transaction_id || "").slice(0,8).toUpperCase();
-        const receipt = {
-          system: "ARK Vord 1.6",
-          type: "DISPUTE_RECEIPT",
-          reason_fallback: "DB not available or disputes table missing",
-          db_error: why,
-          created_at: new Date().toISOString(),
-          dispute: payload,
-          transaction_ref: ref
+      async saveInvoice(){
+        this.clearModalError();
+        if(!this.activeAccountId) return this.modalError("No active account.");
+
+        const number = (document.getElementById("i-number").value || "").trim();
+        const client = (document.getElementById("i-client").value || "").trim();
+        const desc = (document.getElementById("i-desc").value || "").trim();
+        const total = Number(document.getElementById("i-total").value);
+        const status = document.getElementById("i-status").value;
+
+        if (!client) return this.modalError("Client is required.");
+        if (!Number.isFinite(total) || total <= 0) return this.modalError("Enter a positive invoice total.");
+
+        const payload = {
+          user_id: this.user.id,
+          account_id: this.activeAccountId,
+          number: number || null,
+          client,
+          description: desc || null,
+          total,
+          status
         };
 
-        const blob = new Blob([JSON.stringify(receipt, null, 2)], { type: "application/json;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `ark-vord-dispute-${ref}-${new Date().toISOString().slice(0,10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
+        const { error } = await sb.from("invoices").insert([payload]);
+        if (error) return this.modalError(error.message || "Insert failed. (Create invoices table + RLS?)");
 
-        alert("Dispute receipt exported locally (DB disputes table not available).");
-        this.closeDispute();
+        this.closeCompose();
+        await this.refreshInvoices();
+        this.renderInvoices();
       },
 
-      dpError(msg){
-        const el = document.getElementById("dp-error");
-        el.style.display = "block";
-        el.textContent = msg;
+      /* ---------------- Export ---------------- */
+      exportActive(){
+        if (this.activeTab === "ledger") return this.exportLedgerCSV();
+        if (this.activeTab === "pantry") return this.exportPantryCSV();
+        if (this.activeTab === "invoices") return this.exportInvoicesCSV();
+        return this.exportLedgerCSV();
       },
 
-      // ---------- Export ----------
-      exportCSV(){
+      exportLedgerCSV(){
         const rows = [["ref","date","description","amount","status"]];
-        for (const t of this.filteredTx()){
+
+        for (const t of this.tx){
           const ref = (t.id || "").toString().slice(0, 8).toUpperCase();
           const date = t.created_at ? new Date(t.created_at).toISOString() : "";
           const desc = (t.description || "").replaceAll('"','""');
@@ -1663,21 +1371,40 @@
           const status = (t.status || "").toUpperCase();
           rows.push([ref, date, desc, amt, status]);
         }
+        this.downloadCSV(rows, `ark-vord-ledger-${new Date().toISOString().slice(0,10)}.csv`);
+      },
 
-        const csv = rows.map(r => r.map(v => `"${String(v ?? "")}"`).join(",")).join("\n");
+      exportPantryCSV(){
+        const rows = [["name","unit","qty","par","created_at"]];
+        for (const it of this.pantry){
+          rows.push([it.name || "", it.unit || "", it.qty ?? "", it.par ?? "", it.created_at || ""]);
+        }
+        this.downloadCSV(rows, `ark-vord-pantry-${new Date().toISOString().slice(0,10)}.csv`);
+      },
+
+      exportInvoicesCSV(){
+        const rows = [["number","client","description","status","total","created_at"]];
+        for (const inv of this.invoices){
+          rows.push([inv.number || "", inv.client || "", inv.description || "", inv.status || "", inv.total ?? "", inv.created_at || ""]);
+        }
+        this.downloadCSV(rows, `ark-vord-invoices-${new Date().toISOString().slice(0,10)}.csv`);
+      },
+
+      downloadCSV(rows, filename){
+        const csv = rows.map(r => r.map(v => `"${String(v ?? "").replaceAll('"','""')}"`).join(",")).join("\n");
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
         const url = URL.createObjectURL(blob);
 
         const a = document.createElement("a");
         a.href = url;
-        a.download = `ark-vord-statement-${new Date().toISOString().slice(0,10)}.csv`;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         a.remove();
         URL.revokeObjectURL(url);
       },
 
-      // ---------- Errors ----------
+      /* ---------------- Errors + Utils ---------------- */
       showLoginError(msg){
         const el = document.getElementById("login-error");
         el.style.display = "block";
@@ -1698,51 +1425,100 @@
         el.style.display = "none";
         el.textContent = "";
       },
-
-      // ---------- Utils ----------
       escape(s){
         return String(s).replace(/[&<>"']/g, m => ({
           "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
         }[m]));
-      },
-      escapeAttr(s){
-        // used for onclick string injection safety (basic)
-        return String(s).replace(/'/g, "\\'");
-      },
-      maskId(id){
-        if (!id) return "—";
-        const clean = String(id);
-        return clean.slice(0, 4) + "…" + clean.slice(-4);
-      },
-      accountNumberFromUUID(uuid){
-        // Display-only: derive a “bank-like” number from uuid.
-        // Example: ARK-1234-5678-9012 (not a real bank account number)
-        const digits = String(uuid).replace(/[^0-9]/g, "");
-        const padded = (digits + "000000000000").slice(0, 12);
-        return `ARK-${padded.slice(0,4)}-${padded.slice(4,8)}-${padded.slice(8,12)}`;
       }
     };
 
-    // Boot session restore
+    // Boot: attempt session restore
     Ark.checkSession(false);
 
-    // Keyboard UX
+    // Keyboard shortcuts
     window.addEventListener("keydown", (e) => {
-      const gateVisible = document.getElementById("gate").style.display !== "none";
-      if (gateVisible) return;
-      if (e.key === "Escape"){
-        Ark.closeCompose();
-        Ark.closeDrawer();
-      }
+      if (document.getElementById("gate").style.display !== "none") return;
+      if (e.key === "Escape") Ark.closeCompose();
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "n"){
         e.preventDefault();
         Ark.openCompose("transaction");
       }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k"){
-        e.preventDefault();
-        document.getElementById("search").focus();
-      }
     });
   </script>
+
+  <!--
+  ===========================
+  EXPECTED SUPABASE TABLES
+  ===========================
+
+  1) accounts
+     - id uuid primary key default gen_random_uuid()
+     - user_id uuid references auth.users(id)
+     - name text not null
+     - type text not null
+     - created_at timestamptz default now()
+
+  2) transactions
+     - id uuid pk default gen_random_uuid()
+     - user_id uuid references auth.users(id)
+     - account_id uuid references accounts(id)
+     - description text not null
+     - amount numeric not null
+     - status text not null default 'POSTED'  -- POSTED or PENDING
+     - created_at timestamptz default now()
+
+  3) pantry_items
+     - id uuid pk default gen_random_uuid()
+     - user_id uuid references auth.users(id)
+     - account_id uuid references accounts(id)
+     - name text not null
+     - unit text null
+     - qty numeric not null default 0
+     - par numeric null
+     - created_at timestamptz default now()
+
+  4) invoices
+     - id uuid pk default gen_random_uuid()
+     - user_id uuid references auth.users(id)
+     - account_id uuid references accounts(id)
+     - number text null
+     - client text not null
+     - description text null
+     - status text not null default 'DRAFT'
+     - total numeric not null
+     - created_at timestamptz default now()
+
+  5) subscriptions (optional)
+     - user_id uuid pk references auth.users(id)
+     - plan text
+     - status text
+     - updated_at timestamptz default now()
+
+  ===========================
+  RLS (MUST HAVE)
+  ===========================
+  Enable RLS on each table, and create policies like:
+
+  accounts:
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid())
+
+  transactions:
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid())
+
+  pantry_items:
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid())
+
+  invoices:
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid())
+
+  subscriptions:
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid())
+
+  -->
 </body>
 </html>
