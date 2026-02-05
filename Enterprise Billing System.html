@@ -16,7 +16,6 @@
 
   <style>
     :root{
-      /* High-class bank palette */
       --bg0:#07090f;
       --bg1:#0b1020;
       --card: rgba(255,255,255,.06);
@@ -32,12 +31,15 @@
       --emerald:#39d98a;
       --ruby:#ff4d6d;
       --ice:#5aa7ff;
+      --amber:#ffcc66;
 
       --shadow: 0 24px 70px rgba(0,0,0,.55);
       --shadow2: 0 14px 34px rgba(0,0,0,.40);
 
       --radius: 18px;
       --radius2: 24px;
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
     *{ box-sizing:border-box; margin:0; padding:0; }
@@ -53,7 +55,6 @@
       overflow:hidden;
     }
 
-    /* Soft grain */
     body:before{
       content:"";
       position:fixed; inset:0;
@@ -64,18 +65,18 @@
     }
 
     a{ color:inherit; text-decoration:none; }
-    button,input,select{ font:inherit; }
+    button,input,select,textarea{ font:inherit; }
 
-    /* Layout */
+    /* App Layout */
     .app{
       height:100%;
       display:grid;
-      grid-template-columns: 280px 1fr;
+      grid-template-columns: 300px 1fr;
       gap: 18px;
       padding: 18px;
     }
 
-    .sidebar{
+    .sidebar, .main{
       border:1px solid var(--stroke);
       background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
       border-radius: var(--radius2);
@@ -83,8 +84,11 @@
       overflow:hidden;
       display:flex;
       flex-direction:column;
+      min-width: 0;
     }
+    .main{ box-shadow: var(--shadow); }
 
+    /* Brand + Profile */
     .brand{
       padding: 18px 18px 14px;
       border-bottom:1px solid var(--stroke);
@@ -93,7 +97,7 @@
       gap:12px;
     }
     .brand .mark{
-      width:42px;height:42px;border-radius:14px;
+      width:44px;height:44px;border-radius:14px;
       background:
         radial-gradient(14px 14px at 30% 30%, rgba(240,215,154,.9), rgba(215,181,109,.55)),
         linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,0));
@@ -110,7 +114,6 @@
     }
     .brand .ver{
       display:block;
-      font-family: Inter, sans-serif;
       font-size: 11px;
       color: var(--muted);
       letter-spacing: .18em;
@@ -131,7 +134,7 @@
       margin-bottom: 10px;
     }
 
-    .select, .input{
+    .select, .input, .textarea{
       width:100%;
       background: rgba(0,0,0,.28);
       border:1px solid var(--stroke);
@@ -141,10 +144,71 @@
       outline:none;
       transition: .15s ease;
     }
-    .select:focus, .input:focus{
+    .textarea{ min-height: 92px; resize: vertical; }
+    .select:focus, .input:focus, .textarea:focus{
       border-color: rgba(215,181,109,.55);
       box-shadow: 0 0 0 4px rgba(215,181,109,.12);
     }
+
+    .pill{
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      color: var(--muted);
+      background: rgba(0,0,0,.20);
+      display:inline-flex; align-items:center; gap:8px;
+    }
+
+    .profileCard{
+      background: rgba(0,0,0,.22);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      padding: 12px 12px 12px;
+      display:flex;
+      gap: 12px;
+      align-items:flex-start;
+    }
+    .avatar{
+      width:42px; height:42px; border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      display:grid; place-items:center;
+      color: rgba(240,215,154,.9);
+      flex: 0 0 auto;
+    }
+    .profileMeta{ min-width:0; }
+    .profileMeta .who{
+      font-weight: 900;
+      letter-spacing: .01em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .profileMeta .sub{
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height:1.25;
+    }
+    .kv{
+      margin-top: 10px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      font-size: 12px;
+      color: rgba(233,237,247,.84);
+    }
+    .kv .row{
+      display:flex; justify-content:space-between; gap: 10px;
+      padding: 8px 10px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+      border-radius: 12px;
+      font-family: var(--mono);
+    }
+    .kv .k{ color: rgba(233,237,247,.66); font-family: Inter, sans-serif; letter-spacing:.08em; text-transform:uppercase; font-size: 10px; }
+    .kv .v{ font-variant-numeric: tabular-nums; }
 
     .nav{
       padding: 10px 10px 16px;
@@ -165,6 +229,7 @@
       background: transparent;
       cursor:pointer;
       transition:.15s ease;
+      text-align:left;
     }
     .navbtn:hover{
       background: rgba(255,255,255,.06);
@@ -172,14 +237,21 @@
     }
     .navbtn .left{
       display:flex; align-items:center; gap:10px;
+      min-width:0;
     }
-    .pill{
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.14);
+    .navbtn .title{
+      font-weight:900;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .navbtn .sub{
       color: var(--muted);
-      background: rgba(0,0,0,.20);
+      font-size:12px;
+      margin-top:2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     .sidefooter{
@@ -193,17 +265,7 @@
       font-size: 12px;
     }
 
-    .main{
-      border:1px solid var(--stroke);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border-radius: var(--radius2);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
-      min-width: 0;
-    }
-
+    /* Main */
     .topbar{
       padding: 18px 18px 14px;
       border-bottom:1px solid var(--stroke);
@@ -226,8 +288,10 @@
       color: var(--muted);
       font-size: 13px;
     }
+
     .actions{
       display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
+      align-items:center;
     }
 
     .btn{
@@ -238,8 +302,12 @@
       border-radius: 14px;
       cursor:pointer;
       transition: .15s ease;
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing:.02em;
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      white-space:nowrap;
     }
     .btn:hover{
       background: rgba(255,255,255,.10);
@@ -265,7 +333,7 @@
 
     .grid{
       display:grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 14px;
       margin-bottom: 14px;
     }
@@ -293,11 +361,12 @@
       letter-spacing:.18em;
       text-transform:uppercase;
       margin-bottom: 10px;
+      display:flex; align-items:center; justify-content:space-between; gap: 10px;
     }
     .card .v{
       position:relative;
       font-size: 28px;
-      font-weight: 800;
+      font-weight: 900;
       letter-spacing: -0.02em;
       font-variant-numeric: tabular-nums;
       line-height:1.05;
@@ -310,6 +379,33 @@
       display:flex;
       gap: 8px;
       align-items:center;
+      line-height:1.25;
+    }
+
+    .filters{
+      margin: 10px 0 12px;
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .chip{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      color: rgba(233,237,247,.86);
+      padding: 8px 10px;
+      border-radius: 999px;
+      cursor:pointer;
+      font-weight: 800;
+      font-size: 12px;
+      display:inline-flex; align-items:center; gap: 8px;
+      transition:.15s ease;
+    }
+    .chip:hover{ background: rgba(255,255,255,.08); }
+    .chip.active{
+      border-color: rgba(215,181,109,.45);
+      background: rgba(215,181,109,.12);
+      color: rgba(240,215,154,.98);
     }
 
     .tablewrap{
@@ -321,7 +417,7 @@
     table{
       width:100%;
       border-collapse:collapse;
-      min-width: 780px;
+      min-width: 980px;
     }
     thead th{
       text-align:left;
@@ -346,11 +442,14 @@
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
     }
+    tbody tr{
+      cursor:pointer;
+    }
     tbody tr:hover td{
       background: rgba(255,255,255,.04);
     }
 
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .mono{ font-family: var(--mono); }
     .tag{
       display:inline-flex;
       align-items:center;
@@ -365,6 +464,7 @@
     .dot{ width:8px; height:8px; border-radius:50%; background: rgba(255,255,255,.35); }
     .dot.posted{ background: rgba(57,217,138,.75); }
     .dot.pending{ background: rgba(90,167,255,.75); }
+    .dot.disputed{ background: rgba(255,204,102,.85); }
 
     .amt.pos{ color: rgba(57,217,138,.95); }
     .amt.neg{ color: rgba(255,77,109,.95); }
@@ -385,7 +485,7 @@
       z-index: 9999;
     }
     .login{
-      width:min(440px, 100%);
+      width:min(460px, 100%);
       border-radius: 28px;
       border: 1px solid rgba(255,255,255,.14);
       background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
@@ -447,12 +547,6 @@
       flex-direction:column;
       gap: 10px;
     }
-    .row{
-      display:flex;
-      gap: 10px;
-      align-items:center;
-    }
-    .row > *{ flex:1; }
 
     .err{
       display:none;
@@ -463,9 +557,10 @@
       background: rgba(255,77,109,.10);
       color: rgba(255,220,226,.95);
       font-size: 13px;
+      line-height:1.25;
     }
 
-    /* Modal */
+    /* Modal + Drawer */
     .modal{
       position:fixed; inset:0;
       background: rgba(0,0,0,.62);
@@ -476,7 +571,7 @@
       z-index: 9000;
     }
     .sheet{
-      width:min(520px, 100%);
+      width:min(560px, 100%);
       border-radius: 26px;
       border: 1px solid rgba(255,255,255,.14);
       background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
@@ -528,7 +623,7 @@
       padding: 10px 10px;
       border-radius: 12px;
       cursor:pointer;
-      font-weight: 800;
+      font-weight: 900;
       letter-spacing:.02em;
       transition:.15s ease;
     }
@@ -536,6 +631,99 @@
       background: rgba(255,255,255,.08);
       border-color: rgba(255,255,255,.12);
       color: rgba(233,237,247,.95);
+    }
+
+    /* Transaction Detail Drawer */
+    .drawer{
+      position:fixed;
+      top: 18px;
+      right: 18px;
+      height: calc(100% - 36px);
+      width: min(520px, calc(100% - 36px));
+      border-radius: 26px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      box-shadow: var(--shadow);
+      display:none;
+      flex-direction:column;
+      z-index: 9500;
+      overflow:hidden;
+    }
+    .drawer:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(1000px 320px at 30% 0%, rgba(240,215,154,.16), transparent 55%);
+      pointer-events:none;
+    }
+    .drawerHead{
+      position:relative;
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .drawerTitle{
+      min-width:0;
+    }
+    .drawerTitle h3{
+      font-family: Fraunces, serif;
+      font-size: 20px;
+      letter-spacing:.2px;
+      line-height:1.1;
+    }
+    .drawerTitle p{
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height:1.25;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .drawerBody{
+      position:relative;
+      padding: 14px 16px 16px;
+      overflow:auto;
+      display:flex;
+      flex-direction:column;
+      gap: 12px;
+    }
+
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .mini{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding: 12px;
+      min-width:0;
+    }
+    .mini .k{
+      font-size: 10px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color: rgba(233,237,247,.62);
+      margin-bottom: 8px;
+    }
+    .mini .v{
+      font-family: var(--mono);
+      font-size: 13px;
+      color: rgba(233,237,247,.90);
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .mini .big{
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
     }
 
     .hint{
@@ -546,13 +734,19 @@
     }
 
     /* Responsive */
-    @media (max-width: 980px){
+    @media (max-width: 1100px){
       body{ overflow:auto; }
       .app{ grid-template-columns: 1fr; height:auto; }
-      .sidebar{ order: 2; }
-      .main{ order: 1; }
+      table{ min-width: 880px; }
+      .drawer{ top: 0; right: 0; height: 100%; width: 100%; border-radius: 0; }
+    }
+    @media (max-width: 860px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+      table{ min-width: 820px; }
+    }
+    @media (max-width: 560px){
       .grid{ grid-template-columns: 1fr; }
-      table{ min-width: 720px; }
+      .twoCol{ grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -566,10 +760,10 @@
           <div class="crest"><i class="fa-solid fa-landmark"></i></div>
           <div style="min-width:0">
             <h3>ARK Vord</h3>
-            <div class="meta">Secure Access • v1.6</div>
+            <div class="meta">Private Ledger Interface • v1.6</div>
           </div>
         </div>
-        <span class="pill"><i class="fa-solid fa-shield-halved"></i>&nbsp;Protected</span>
+        <span class="pill"><i class="fa-solid fa-shield-halved"></i> Protected</span>
       </div>
 
       <div class="loginbody">
@@ -577,18 +771,18 @@
         <input class="input" id="login-email" type="email" placeholder="Email address" autocomplete="email" />
         <input class="input" id="login-pass" type="password" placeholder="Password" autocomplete="current-password" />
 
-        <div class="row">
-          <button class="btn primary" onclick="Ark.login()">
-            <i class="fa-solid fa-arrow-right-to-bracket"></i>&nbsp;Enter
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn primary" style="flex:1;" onclick="Ark.login()">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Enter
           </button>
           <button class="btn" onclick="Ark.checkSession(true)">
-            <i class="fa-solid fa-rotate"></i>&nbsp;Restore
+            <i class="fa-solid fa-rotate"></i> Restore
           </button>
         </div>
 
         <div id="login-error" class="err"></div>
         <div class="hint">
-          This is a private financial ledger interface. Use your Supabase Auth credentials.
+          ARK Vord is a personal finance ledger (not a real bank). Use your Supabase Auth credentials.
         </div>
       </div>
     </div>
@@ -606,31 +800,68 @@
       </div>
 
       <div class="sideblock">
+        <div class="profileCard">
+          <div class="avatar"><i class="fa-solid fa-user"></i></div>
+          <div class="profileMeta">
+            <div class="who" id="ui-username">—</div>
+            <div class="sub" id="ui-email">—</div>
+
+            <div class="kv">
+              <div class="row">
+                <div class="k">Client ID</div>
+                <div class="v" id="ui-clientid">—</div>
+              </div>
+              <div class="row">
+                <div class="k">Session</div>
+                <div class="v" id="ui-session">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hint" style="margin-top:10px;">
+          Tip: click any transaction row to open the detailed record view (reference, timestamps, dispute, memo).
+        </div>
+      </div>
+
+      <div class="sideblock">
         <div class="label">Active account</div>
         <select class="select" id="account-picker" onchange="Ark.setActiveAccount(this.value)"></select>
+
+        <div class="kv" style="margin-top:12px;">
+          <div class="row">
+            <div class="k">Account No.</div>
+            <div class="v" id="ui-acctno">—</div>
+          </div>
+          <div class="row">
+            <div class="k">Routing</div>
+            <div class="v" id="ui-routing">021000021</div>
+          </div>
+        </div>
+
         <div class="hint" style="margin-top:10px;">
-          Switch accounts to view balances and transactions.
+          Account numbers are derived from your account UUID for display.
         </div>
       </div>
 
       <div class="nav">
-        <button class="navbtn" onclick="Ark.openModal('transaction')">
+        <button class="navbtn" onclick="Ark.openCompose('transaction')">
           <div class="left">
             <i class="fa-solid fa-circle-plus" style="color:var(--gold)"></i>
-            <div>
-              <div style="font-weight:800;">New Transaction</div>
-              <div class="muted" style="font-size:12px;margin-top:2px;">Deposit or withdrawal</div>
+            <div style="min-width:0">
+              <div class="title">New Transaction</div>
+              <div class="sub">Deposit / Withdrawal</div>
             </div>
           </div>
           <span class="pill">T</span>
         </button>
 
-        <button class="navbtn" onclick="Ark.openModal('transfer')">
+        <button class="navbtn" onclick="Ark.openCompose('transfer')">
           <div class="left">
             <i class="fa-solid fa-right-left" style="color:var(--ice)"></i>
-            <div>
-              <div style="font-weight:800;">Transfer</div>
-              <div class="muted" style="font-size:12px;margin-top:2px;">Between accounts</div>
+            <div style="min-width:0">
+              <div class="title">Transfer</div>
+              <div class="sub">Between accounts</div>
             </div>
           </div>
           <span class="pill">X</span>
@@ -639,20 +870,31 @@
         <button class="navbtn" onclick="Ark.refresh()">
           <div class="left">
             <i class="fa-solid fa-arrows-rotate" style="color:var(--emerald)"></i>
-            <div>
-              <div style="font-weight:800;">Refresh</div>
-              <div class="muted" style="font-size:12px;margin-top:2px;">Sync balances</div>
+            <div style="min-width:0">
+              <div class="title">Refresh</div>
+              <div class="sub">Sync activity & totals</div>
             </div>
           </div>
           <span class="pill">R</span>
         </button>
 
+        <button class="navbtn" onclick="Ark.exportCSV()">
+          <div class="left">
+            <i class="fa-solid fa-file-export" style="color:var(--amber)"></i>
+            <div style="min-width:0">
+              <div class="title">Export Statement</div>
+              <div class="sub">CSV (active account)</div>
+            </div>
+          </div>
+          <span class="pill">CSV</span>
+        </button>
+
         <button class="navbtn" onclick="Ark.logout()">
           <div class="left">
             <i class="fa-solid fa-arrow-right-from-bracket" style="color:var(--ruby)"></i>
-            <div>
-              <div style="font-weight:800;">Sign Out</div>
-              <div class="muted" style="font-size:12px;margin-top:2px;">End session</div>
+            <div style="min-width:0">
+              <div class="title">Sign Out</div>
+              <div class="sub">End session</div>
             </div>
           </div>
           <span class="pill">⇥</span>
@@ -660,11 +902,8 @@
       </div>
 
       <div class="sidefooter">
-        <div>
-          <div id="who" style="font-weight:700; color:rgba(233,237,247,.88);">—</div>
-          <div id="when" class="muted">—</div>
-        </div>
-        <span class="pill"><i class="fa-solid fa-lock"></i>&nbsp;RLS</span>
+        <div id="ui-time">—</div>
+        <span class="pill"><i class="fa-solid fa-lock"></i> RLS</span>
       </div>
     </aside>
 
@@ -672,39 +911,51 @@
     <main class="main">
       <div class="topbar">
         <div class="headline">
-          <h2>Account Overview</h2>
-          <p id="subhead">Balances and recent activity.</p>
+          <h2>Portfolio Overview</h2>
+          <p id="subhead">Balances and recent activity for your selected account.</p>
         </div>
+
         <div class="actions">
-          <button class="btn" onclick="Ark.openModal('transaction')">
-            <i class="fa-solid fa-plus"></i>&nbsp;New
-          </button>
-          <button class="btn primary" onclick="Ark.exportCSV()">
-            <i class="fa-solid fa-file-export"></i>&nbsp;Export
-          </button>
+          <input class="input" id="search" type="text" placeholder="Search description / status / ref…" style="min-width:260px;" oninput="Ark.render()" />
+          <button class="btn" onclick="Ark.openCompose('transaction')"><i class="fa-solid fa-plus"></i> New</button>
+          <button class="btn primary" onclick="Ark.openCompose('transfer')"><i class="fa-solid fa-right-left"></i> Transfer</button>
         </div>
       </div>
 
       <div class="content">
         <section class="grid">
           <div class="card">
-            <div class="k">Deposits</div>
+            <div class="k">Deposits <span class="pill"><i class="fa-solid fa-arrow-trend-up"></i> inflow</span></div>
             <div class="v" id="v-dep">$0.00</div>
-            <div class="sub"><i class="fa-solid fa-arrow-trend-up" style="color:var(--emerald)"></i>Sum of positive entries</div>
+            <div class="sub"><i class="fa-solid fa-circle-info" style="color:var(--emerald)"></i> Sum of positive entries (all statuses).</div>
           </div>
 
           <div class="card">
-            <div class="k">Withdrawals</div>
+            <div class="k">Withdrawals <span class="pill"><i class="fa-solid fa-arrow-trend-down"></i> outflow</span></div>
             <div class="v" id="v-wdr">$0.00</div>
-            <div class="sub"><i class="fa-solid fa-arrow-trend-down" style="color:var(--ruby)"></i>Sum of negative entries</div>
+            <div class="sub"><i class="fa-solid fa-circle-info" style="color:var(--ruby)"></i> Sum of negative entries (all statuses).</div>
           </div>
 
           <div class="card">
-            <div class="k">Balance</div>
+            <div class="k">Posted Balance <span class="pill"><i class="fa-solid fa-scale-balanced"></i> settled</span></div>
             <div class="v" id="v-bal">$0.00</div>
-            <div class="sub"><i class="fa-solid fa-scale-balanced" style="color:var(--gold)"></i>Posted balance</div>
+            <div class="sub"><i class="fa-solid fa-circle-info" style="color:var(--gold)"></i> Only POSTED entries affect this figure.</div>
+          </div>
+
+          <div class="card">
+            <div class="k">Pending Net <span class="pill"><i class="fa-solid fa-hourglass-half"></i> pending</span></div>
+            <div class="v" id="v-pend">$0.00</div>
+            <div class="sub"><i class="fa-solid fa-circle-info" style="color:var(--ice)"></i> Net of PENDING entries.</div>
           </div>
         </section>
+
+        <div class="filters">
+          <span class="chip active" id="f-all" onclick="Ark.setFilter('ALL')"><i class="fa-solid fa-layer-group"></i> All</span>
+          <span class="chip" id="f-posted" onclick="Ark.setFilter('POSTED')"><i class="fa-solid fa-check"></i> Posted</span>
+          <span class="chip" id="f-pending" onclick="Ark.setFilter('PENDING')"><i class="fa-solid fa-hourglass-half"></i> Pending</span>
+          <span class="chip" id="f-dep" onclick="Ark.setFilter('DEPOSITS')"><i class="fa-solid fa-arrow-trend-up"></i> Deposits</span>
+          <span class="chip" id="f-wdr" onclick="Ark.setFilter('WITHDRAWALS')"><i class="fa-solid fa-arrow-trend-down"></i> Withdrawals</span>
+        </div>
 
         <section class="tablewrap">
           <table>
@@ -722,30 +973,29 @@
         </section>
 
         <div class="hint" style="margin-top:12px;">
-          Amounts: deposits are positive, withdrawals are negative. Transfers generate two entries (out/in).
+          Click a transaction to open details. You can copy the reference, view timestamps, and file a dispute.
         </div>
       </div>
     </main>
   </div>
 
-  <!-- MODAL -->
-  <div id="modal" class="modal" onclick="Ark.modalBackdrop(event)">
-    <div class="sheet" role="dialog" aria-modal="true" aria-label="Entry Editor">
+  <!-- COMPOSE MODAL -->
+  <div id="modal" class="modal" onclick="Ark.backdrop(event)">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Entry Composer">
       <div class="sheethead">
         <div>
           <h4 id="modal-title">New Entry</h4>
-          <div class="muted" style="font-size:12px;margin-top:4px;">Post a transaction or transfer funds.</div>
+          <div class="muted" style="font-size:12px;margin-top:4px;">Create transactions and transfers with full audit fields.</div>
         </div>
-        <button class="btn" onclick="Ark.closeModal()"><i class="fa-solid fa-xmark"></i></button>
+        <button class="btn" onclick="Ark.closeCompose()"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="sheetbody">
         <div class="seg">
-          <button id="seg-transaction" class="active" onclick="Ark.switchMode('transaction')">Transaction</button>
-          <button id="seg-transfer" onclick="Ark.switchMode('transfer')">Transfer</button>
+          <button id="seg-transaction" class="active" onclick="Ark.switchCompose('transaction')">Transaction</button>
+          <button id="seg-transfer" onclick="Ark.switchCompose('transfer')">Transfer</button>
         </div>
 
-        <!-- Transaction mode -->
         <div id="mode-transaction">
           <div class="label" style="margin-top:6px;">Transaction details</div>
           <input id="t-desc" class="input" type="text" placeholder="Description (e.g., Payroll, Groceries)" />
@@ -756,11 +1006,10 @@
           </select>
 
           <button class="btn primary" onclick="Ark.saveTransaction()">
-            <i class="fa-solid fa-check"></i>&nbsp;Post Entry
+            <i class="fa-solid fa-check"></i> Post Entry
           </button>
         </div>
 
-        <!-- Transfer mode -->
         <div id="mode-transfer" style="display:none;">
           <div class="label" style="margin-top:6px;">Transfer details</div>
           <select id="x-from" class="select"></select>
@@ -769,7 +1018,7 @@
           <input id="x-desc" class="input" type="text" placeholder="Memo (optional)" />
 
           <button class="btn primary" onclick="Ark.saveTransfer()">
-            <i class="fa-solid fa-right-left"></i>&nbsp;Execute Transfer
+            <i class="fa-solid fa-right-left"></i> Execute Transfer
           </button>
         </div>
 
@@ -778,12 +1027,109 @@
     </div>
   </div>
 
+  <!-- TRANSACTION DETAIL DRAWER -->
+  <div id="drawer" class="drawer" aria-label="Transaction details">
+    <div class="drawerHead">
+      <div class="drawerTitle">
+        <h3 id="d-title">Transaction</h3>
+        <p id="d-sub">—</p>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button class="btn" onclick="Ark.copyRef()"><i class="fa-solid fa-copy"></i> Copy Ref</button>
+        <button class="btn" onclick="Ark.closeDrawer()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+
+    <div class="drawerBody">
+      <div class="twoCol">
+        <div class="mini">
+          <div class="k">Reference</div>
+          <div class="v" id="d-ref">—</div>
+        </div>
+        <div class="mini">
+          <div class="k">Status</div>
+          <div class="v" id="d-status">—</div>
+        </div>
+      </div>
+
+      <div class="twoCol">
+        <div class="mini">
+          <div class="k">Amount</div>
+          <div class="v big" id="d-amount">—</div>
+        </div>
+        <div class="mini">
+          <div class="k">Date</div>
+          <div class="v" id="d-date">—</div>
+        </div>
+      </div>
+
+      <div class="mini">
+        <div class="k">Description</div>
+        <div class="v" id="d-desc" style="white-space:normal; line-height:1.35;">—</div>
+      </div>
+
+      <div class="twoCol">
+        <div class="mini">
+          <div class="k">Account</div>
+          <div class="v" id="d-acct">—</div>
+        </div>
+        <div class="mini">
+          <div class="k">Account ID</div>
+          <div class="v" id="d-acctid">—</div>
+        </div>
+      </div>
+
+      <div class="mini">
+        <div class="k">Timestamps</div>
+        <div class="v" id="d-ts">—</div>
+      </div>
+
+      <div class="mini">
+        <div class="k">Actions</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn danger" onclick="Ark.openDispute()"><i class="fa-solid fa-triangle-exclamation"></i> File Dispute</button>
+          <button class="btn" onclick="Ark.togglePending()"><i class="fa-solid fa-hourglass-half"></i> Toggle Pending</button>
+          <button class="btn" onclick="Ark.deleteTx()"><i class="fa-solid fa-trash"></i> Delete</button>
+        </div>
+        <div class="hint">
+          Disputes are recorded as a separate item (optional) if your server has a <span class="mono">disputes</span> table.
+          If not, ARK Vord will export a dispute receipt locally.
+        </div>
+      </div>
+
+      <div id="disputeBox" class="mini" style="display:none;">
+        <div class="k">Dispute Form</div>
+        <select id="dp-reason" class="select">
+          <option value="UNRECOGNIZED">Unrecognized transaction</option>
+          <option value="DUPLICATE">Duplicate charge</option>
+          <option value="WRONG_AMOUNT">Wrong amount</option>
+          <option value="SERVICE_NOT_RECEIVED">Service not received</option>
+          <option value="OTHER">Other</option>
+        </select>
+        <input id="dp-amount" class="input" type="number" step="0.01" placeholder="Disputed amount (optional)" />
+        <textarea id="dp-notes" class="textarea" placeholder="Explain what happened (details help)."></textarea>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn primary" onclick="Ark.submitDispute()"><i class="fa-solid fa-paper-plane"></i> Submit Dispute</button>
+          <button class="btn" onclick="Ark.closeDispute()"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        </div>
+
+        <div id="dp-error" class="err"></div>
+      </div>
+    </div>
+  </div>
+
   <script>
     /***********************
-     * ARK Vord 1.6 (Client)
-     * - Supabase Auth (email/password)
-     * - accounts + transactions tables
-     * - RLS assumed on server (you said you updated it)
+     * ARK Vord 1.6
+     * Tables expected:
+     *  - accounts(id, user_id, name, type, created_at)
+     *  - transactions(id, user_id, account_id, amount, description, status, created_at)
+     *
+     * Optional table for disputes (if you want it server-side):
+     *  - disputes(id uuid default uuid_generate_v4(),
+     *            user_id uuid, transaction_id uuid, account_id uuid,
+     *            reason text, amount numeric, notes text, created_at timestamptz default now())
      ************************/
 
     // --- SUPABASE CONFIGURATION ---
@@ -791,7 +1137,7 @@
     const SUPABASE_KEY = "sb_publishable_uTgHvSCKusJCK8aSfejzbw_Oxket8q2";
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const fmt = (n) => {
+    const money = (n) => {
       const v = Number(n || 0);
       return v.toLocaleString(undefined, { style:"currency", currency:"USD" });
     };
@@ -801,7 +1147,8 @@
       accounts: [],
       tx: [],
       activeAccountId: null,
-      mode: "transaction",
+      filter: "ALL",
+      selectedTx: null,
 
       // ---------- Session ----------
       async checkSession(showErrors=false){
@@ -838,6 +1185,7 @@
       },
 
       async logout(){
+        this.closeDrawer();
         await sb.auth.signOut();
         this.user = null;
         this.accounts = [];
@@ -855,15 +1203,19 @@
         document.getElementById("gate").style.display = "none";
         document.getElementById("app").style.display = "grid";
 
-        const who = this.user?.email ? this.user.email : (this.user?.id || "Session");
-        document.getElementById("who").textContent = who;
-        document.getElementById("when").textContent = new Date().toLocaleString();
+        // User UI
+        const email = this.user?.email || "—";
+        const username = (email.includes("@") ? email.split("@")[0] : email) || "—";
+        document.getElementById("ui-username").textContent = username;
+        document.getElementById("ui-email").textContent = email;
+        document.getElementById("ui-clientid").textContent = this.maskId(this.user?.id || "");
+        document.getElementById("ui-session").textContent = new Date().toLocaleString();
+        document.getElementById("ui-time").textContent = new Date().toLocaleString();
 
         await this.loadAccounts();
 
+        // Create defaults if none exist
         if (!this.accounts.length){
-          // Optional: create defaults if none exist
-          // If you don't want this behavior, delete this block.
           await this.createDefaultAccounts();
           await this.loadAccounts();
         }
@@ -887,7 +1239,6 @@
       },
 
       async createDefaultAccounts(){
-        // This assumes accounts has (user_id, name, type)
         const uid = this.user.id;
         const payload = [
           { user_id: uid, name: "Primary Checking", type: "CHECKING" },
@@ -905,7 +1256,7 @@
         };
         picker.innerHTML = this.accounts.map(mk).join("");
 
-        // Transfer selects
+        // compose selects
         const from = document.getElementById("x-from");
         const to = document.getElementById("x-to");
         from.innerHTML = this.accounts.map(mk).join("");
@@ -914,18 +1265,20 @@
         if (this.activeAccountId){
           picker.value = this.activeAccountId;
           from.value = this.activeAccountId;
-          // pick a different 'to' if possible
           const other = this.accounts.find(a => a.id !== this.activeAccountId);
           if (other) to.value = other.id;
         }
 
-        // Headline subtext
-        const active = this.accounts.find(a => a.id === this.activeAccountId) || this.accounts[0];
+        // account info (display-only)
+        const acct = this.accounts.find(a => a.id === this.activeAccountId) || this.accounts[0];
         document.getElementById("subhead").textContent =
-          active ? `${active.name} • ${active.type}` : "Balances and recent activity.";
+          acct ? `${acct.name} • ${acct.type} • Click any transaction to view details.` : "Balances and recent activity.";
+
+        document.getElementById("ui-acctno").textContent = acct ? this.accountNumberFromUUID(acct.id) : "—";
       },
 
       async setActiveAccount(id){
+        this.closeDrawer();
         this.activeAccountId = id;
         this.paintAccountPickers();
         await this.refresh();
@@ -945,75 +1298,104 @@
           console.error(error);
           return;
         }
-
         this.tx = data || [];
         this.render();
       },
 
       compute(){
-        let deposits = 0, withdrawals = 0, balance = 0;
+        let deposits = 0, withdrawals = 0, postedBal = 0, pendingNet = 0;
 
         for (const t of this.tx){
           const amt = Number(t.amount);
           if (!Number.isFinite(amt)) continue;
+
           if (amt > 0) deposits += amt;
           if (amt < 0) withdrawals += Math.abs(amt);
-          if (t.status === "POSTED") balance += amt; // posted balance
+
+          if ((t.status || "POSTED").toUpperCase() === "PENDING") pendingNet += amt;
+          if ((t.status || "POSTED").toUpperCase() === "POSTED") postedBal += amt;
         }
-        return { deposits, withdrawals, balance };
+        return { deposits, withdrawals, postedBal, pendingNet };
+      },
+
+      setFilter(f){
+        this.filter = f;
+        for (const id of ["f-all","f-posted","f-pending","f-dep","f-wdr"]) {
+          document.getElementById(id).classList.remove("active");
+        }
+        const map = {ALL:"f-all", POSTED:"f-posted", PENDING:"f-pending", DEPOSITS:"f-dep", WITHDRAWALS:"f-wdr"};
+        document.getElementById(map[f]).classList.add("active");
+        this.render();
+      },
+
+      filteredTx(){
+        const q = (document.getElementById("search").value || "").trim().toLowerCase();
+        return this.tx.filter(t => {
+          const status = (t.status || "POSTED").toUpperCase();
+          const amt = Number(t.amount || 0);
+
+          // filter chip
+          if (this.filter === "POSTED" && status !== "POSTED") return false;
+          if (this.filter === "PENDING" && status !== "PENDING") return false;
+          if (this.filter === "DEPOSITS" && !(amt > 0)) return false;
+          if (this.filter === "WITHDRAWALS" && !(amt < 0)) return false;
+
+          if (!q) return true;
+          const ref = (t.id || "").slice(0,8).toLowerCase();
+          const desc = (t.description || "").toLowerCase();
+          return ref.includes(q) || desc.includes(q) || status.toLowerCase().includes(q);
+        });
       },
 
       render(){
-        const { deposits, withdrawals, balance } = this.compute();
-
-        document.getElementById("v-dep").textContent = fmt(deposits);
-        document.getElementById("v-wdr").textContent = fmt(withdrawals);
-        document.getElementById("v-bal").textContent = fmt(balance);
+        const { deposits, withdrawals, postedBal, pendingNet } = this.compute();
+        document.getElementById("v-dep").textContent = money(deposits);
+        document.getElementById("v-wdr").textContent = money(withdrawals);
+        document.getElementById("v-bal").textContent = money(postedBal);
+        document.getElementById("v-pend").textContent = money(pendingNet);
 
         const body = document.getElementById("tx-body");
         body.innerHTML = "";
 
-        if (!this.tx.length){
+        const rows = this.filteredTx();
+        if (!rows.length){
           body.innerHTML = `
             <tr>
               <td colspan="5" class="muted" style="padding:18px 14px;">
-                No transactions found for this account.
+                No transactions match your current filter/search.
               </td>
             </tr>`;
           return;
         }
 
-        for (const t of this.tx){
+        for (const t of rows){
           const ref = (t.id || "").toString().slice(0, 8).toUpperCase();
           const date = t.created_at ? new Date(t.created_at).toLocaleDateString() : "—";
           const desc = this.escape(t.description || "—");
           const amt = Number(t.amount || 0);
           const amtClass = amt >= 0 ? "pos" : "neg";
-          const amtText = `${amt >= 0 ? "+" : "-"}${fmt(Math.abs(amt))}`;
+          const amtText = `${amt >= 0 ? "+" : "-"}${money(Math.abs(amt))}`;
           const status = (t.status || "POSTED").toUpperCase();
           const dot = status === "PENDING" ? "pending" : "posted";
 
           body.innerHTML += `
-            <tr>
+            <tr onclick="Ark.openDrawer('${this.escapeAttr(t.id)}')">
               <td class="mono">${ref}</td>
               <td>${date}</td>
-              <td style="max-width:420px; overflow:hidden; text-overflow:ellipsis;">
+              <td style="max-width:520px; overflow:hidden; text-overflow:ellipsis;">
                 <strong>${desc}</strong>
               </td>
               <td class="amt ${amtClass}">${amtText}</td>
-              <td>
-                <span class="tag"><span class="dot ${dot}"></span>${status}</span>
-              </td>
+              <td><span class="tag"><span class="dot ${dot}"></span>${status}</span></td>
             </tr>`;
         }
       },
 
-      // ---------- Modal ----------
-      openModal(which){
+      // ---------- Compose (New Transaction / Transfer) ----------
+      openCompose(kind){
         this.clearModalError();
-        this.switchMode(which || "transaction");
+        this.switchCompose(kind || "transaction");
 
-        // Prefill
         document.getElementById("t-desc").value = "";
         document.getElementById("t-amt").value = "";
         document.getElementById("t-status").value = "POSTED";
@@ -1021,23 +1403,19 @@
         document.getElementById("x-amt").value = "";
         document.getElementById("x-desc").value = "";
 
-        // sync pickers with active account
         this.paintAccountPickers();
-
         document.getElementById("modal").style.display = "flex";
       },
 
-      closeModal(){
+      closeCompose(){
         document.getElementById("modal").style.display = "none";
       },
 
-      modalBackdrop(e){
-        if (e.target && e.target.id === "modal") this.closeModal();
+      backdrop(e){
+        if (e.target && e.target.id === "modal") this.closeCompose();
       },
 
-      switchMode(mode){
-        this.mode = mode;
-
+      switchCompose(mode){
         const segT = document.getElementById("seg-transaction");
         const segX = document.getElementById("seg-transfer");
         const mT = document.getElementById("mode-transaction");
@@ -1059,7 +1437,6 @@
         }
       },
 
-      // ---------- Writes ----------
       async saveTransaction(){
         this.clearModalError();
 
@@ -1068,7 +1445,6 @@
         const status = document.getElementById("t-status").value;
 
         const amt = Number(amtRaw);
-
         if (!desc) return this.modalError("Description is required.");
         if (!Number.isFinite(amt) || amt === 0) return this.modalError("Enter a valid non-zero amount.");
 
@@ -1083,7 +1459,7 @@
         const { error } = await sb.from("transactions").insert([payload]);
         if (error) return this.modalError(error.message || "Insert failed.");
 
-        this.closeModal();
+        this.closeCompose();
         await this.refresh();
       },
 
@@ -1096,7 +1472,6 @@
         const memo = (document.getElementById("x-desc").value || "").trim();
 
         const amt = Number(amtRaw);
-
         if (!fromId || !toId) return this.modalError("Choose both accounts.");
         if (fromId === toId) return this.modalError("From/To accounts must be different.");
         if (!Number.isFinite(amt) || amt <= 0) return this.modalError("Enter a positive amount.");
@@ -1112,21 +1487,175 @@
         const { error } = await sb.from("transactions").insert(payload);
         if (error) return this.modalError(error.message || "Transfer failed.");
 
-        this.closeModal();
-        // refresh if active account is involved
+        this.closeCompose();
         if (this.activeAccountId === fromId || this.activeAccountId === toId){
           await this.refresh();
         }
       },
 
+      // ---------- Transaction Detail Drawer ----------
+      openDrawer(txId){
+        const t = this.tx.find(x => x.id === txId);
+        if (!t) return;
+
+        this.selectedTx = t;
+        document.getElementById("disputeBox").style.display = "none";
+        document.getElementById("dp-error").style.display = "none";
+        document.getElementById("dp-error").textContent = "";
+
+        const ref = (t.id || "").slice(0,8).toUpperCase();
+        const status = (t.status || "POSTED").toUpperCase();
+        const dotCls = status === "PENDING" ? "pending" : "posted";
+        const amt = Number(t.amount || 0);
+
+        const acct = this.accounts.find(a => a.id === t.account_id);
+        const acctLabel = acct ? `${acct.name} • ${acct.type}` : "—";
+
+        document.getElementById("d-title").textContent = amt >= 0 ? "Deposit" : "Withdrawal";
+        document.getElementById("d-sub").textContent = `${acctLabel} • Ref ${ref}`;
+
+        document.getElementById("d-ref").textContent = ref;
+        document.getElementById("d-status").innerHTML = `<span class="tag"><span class="dot ${dotCls}"></span>${status}</span>`;
+        document.getElementById("d-amount").innerHTML = `<span class="${amt>=0?'amt pos':'amt neg'}">${amt>=0?'+':'-'}${money(Math.abs(amt))}</span>`;
+        document.getElementById("d-date").textContent = t.created_at ? new Date(t.created_at).toLocaleString() : "—";
+        document.getElementById("d-desc").textContent = t.description || "—";
+        document.getElementById("d-acct").textContent = acctLabel;
+        document.getElementById("d-acctid").textContent = t.account_id || "—";
+        document.getElementById("d-ts").textContent = `created_at: ${t.created_at ? new Date(t.created_at).toISOString() : "—"}`;
+
+        document.getElementById("drawer").style.display = "flex";
+      },
+
+      closeDrawer(){
+        document.getElementById("drawer").style.display = "none";
+        this.selectedTx = null;
+      },
+
+      copyRef(){
+        if (!this.selectedTx) return;
+        const ref = (this.selectedTx.id || "").slice(0,8).toUpperCase();
+        navigator.clipboard?.writeText(ref);
+      },
+
+      async togglePending(){
+        if (!this.selectedTx) return;
+        const current = (this.selectedTx.status || "POSTED").toUpperCase();
+        const next = current === "PENDING" ? "POSTED" : "PENDING";
+
+        const { error } = await sb
+          .from("transactions")
+          .update({ status: next })
+          .eq("id", this.selectedTx.id);
+
+        if (error) return alert("Update failed: " + error.message);
+
+        await this.refresh();
+        this.openDrawer(this.selectedTx.id);
+      },
+
+      async deleteTx(){
+        if (!this.selectedTx) return;
+        const ref = (this.selectedTx.id || "").slice(0,8).toUpperCase();
+        if (!confirm(`Delete transaction ${ref}? This cannot be undone.`)) return;
+
+        const { error } = await sb
+          .from("transactions")
+          .delete()
+          .eq("id", this.selectedTx.id);
+
+        if (error) return alert("Delete failed: " + error.message);
+
+        this.closeDrawer();
+        await this.refresh();
+      },
+
+      // ---------- Disputes ----------
+      openDispute(){
+        if (!this.selectedTx) return;
+        document.getElementById("disputeBox").style.display = "block";
+        document.getElementById("dp-reason").value = "UNRECOGNIZED";
+        document.getElementById("dp-amount").value = "";
+        document.getElementById("dp-notes").value = "";
+        document.getElementById("dp-error").style.display = "none";
+        document.getElementById("dp-error").textContent = "";
+      },
+
+      closeDispute(){
+        document.getElementById("disputeBox").style.display = "none";
+      },
+
+      async submitDispute(){
+        if (!this.selectedTx) return;
+
+        const reason = document.getElementById("dp-reason").value;
+        const amtRaw = document.getElementById("dp-amount").value;
+        const notes = (document.getElementById("dp-notes").value || "").trim();
+
+        const amt = amtRaw ? Number(amtRaw) : null;
+        if (amtRaw && !Number.isFinite(amt)) return this.dpError("Disputed amount must be a number.");
+        if (!notes) return this.dpError("Please describe the issue (notes are required).");
+
+        const payload = {
+          user_id: this.user.id,
+          transaction_id: this.selectedTx.id,
+          account_id: this.selectedTx.account_id,
+          reason,
+          amount: amt,
+          notes
+        };
+
+        // Try to save to a `disputes` table if it exists.
+        // If it doesn't exist, we export a local "dispute receipt" JSON so you still have a record.
+        try{
+          const { error } = await sb.from("disputes").insert([payload]);
+          if (!error){
+            alert("Dispute submitted (saved to DB).");
+            this.closeDispute();
+            return;
+          }
+          // Fall through to local receipt if table/policy fails
+          this.exportDisputeReceipt(payload, error.message || "DB insert failed");
+        }catch(e){
+          this.exportDisputeReceipt(payload, e?.message || "Unknown error");
+        }
+      },
+
+      exportDisputeReceipt(payload, why){
+        const ref = (payload.transaction_id || "").slice(0,8).toUpperCase();
+        const receipt = {
+          system: "ARK Vord 1.6",
+          type: "DISPUTE_RECEIPT",
+          reason_fallback: "DB not available or disputes table missing",
+          db_error: why,
+          created_at: new Date().toISOString(),
+          dispute: payload,
+          transaction_ref: ref
+        };
+
+        const blob = new Blob([JSON.stringify(receipt, null, 2)], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ark-vord-dispute-${ref}-${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        alert("Dispute receipt exported locally (DB disputes table not available).");
+        this.closeDispute();
+      },
+
+      dpError(msg){
+        const el = document.getElementById("dp-error");
+        el.style.display = "block";
+        el.textContent = msg;
+      },
+
       // ---------- Export ----------
       exportCSV(){
-        // Exports currently loaded transactions (active account view)
-        const rows = [
-          ["ref","date","description","amount","status"]
-        ];
-
-        for (const t of this.tx){
+        const rows = [["ref","date","description","amount","status"]];
+        for (const t of this.filteredTx()){
           const ref = (t.id || "").toString().slice(0, 8).toUpperCase();
           const date = t.created_at ? new Date(t.created_at).toISOString() : "";
           const desc = (t.description || "").replaceAll('"','""');
@@ -1141,7 +1670,7 @@
 
         const a = document.createElement("a");
         a.href = url;
-        a.download = `ark-vord-${new Date().toISOString().slice(0,10)}.csv`;
+        a.download = `ark-vord-statement-${new Date().toISOString().slice(0,10)}.csv`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -1175,19 +1704,43 @@
         return String(s).replace(/[&<>"']/g, m => ({
           "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
         }[m]));
+      },
+      escapeAttr(s){
+        // used for onclick string injection safety (basic)
+        return String(s).replace(/'/g, "\\'");
+      },
+      maskId(id){
+        if (!id) return "—";
+        const clean = String(id);
+        return clean.slice(0, 4) + "…" + clean.slice(-4);
+      },
+      accountNumberFromUUID(uuid){
+        // Display-only: derive a “bank-like” number from uuid.
+        // Example: ARK-1234-5678-9012 (not a real bank account number)
+        const digits = String(uuid).replace(/[^0-9]/g, "");
+        const padded = (digits + "000000000000").slice(0, 12);
+        return `ARK-${padded.slice(0,4)}-${padded.slice(4,8)}-${padded.slice(8,12)}`;
       }
     };
 
-    // Boot: attempt session restore
+    // Boot session restore
     Ark.checkSession(false);
 
-    // Keyboard shortcuts (optional)
+    // Keyboard UX
     window.addEventListener("keydown", (e) => {
-      if (document.getElementById("gate").style.display !== "none") return;
-      if (e.key === "Escape") Ark.closeModal();
+      const gateVisible = document.getElementById("gate").style.display !== "none";
+      if (gateVisible) return;
+      if (e.key === "Escape"){
+        Ark.closeCompose();
+        Ark.closeDrawer();
+      }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "n"){
         e.preventDefault();
-        Ark.openModal("transaction");
+        Ark.openCompose("transaction");
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k"){
+        e.preventDefault();
+        document.getElementById("search").focus();
       }
     });
   </script>
