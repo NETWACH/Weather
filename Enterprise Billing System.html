@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FEDERAL ASSET COMMAND | v7.0-SUPABASE</title>
+    <title>FEDERAL ASSET COMMAND | v7.2</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -40,11 +40,11 @@
 
     <div id="gate-keeper">
         <div class="login-card">
-            <i class="fas fa-microchip" style="font-size: 3rem; color: var(--neon-blue); margin-bottom: 1rem;"></i>
+            <i class="fas fa-fingerprint" style="font-size: 3rem; color: var(--neon-blue); margin-bottom: 1rem;"></i>
             <h2 style="letter-spacing: 5px; margin-bottom: 2rem;">VAULT ACCESS</h2>
             <input type="text" id="user-id" placeholder="USERNAME" style="text-align: center;">
             <input type="password" id="user-key" placeholder="PASSCODE" style="text-align: center;">
-            <button class="btn" style="background: var(--neon-blue); width: 100%; color: #000;" onclick="Portal.login()">INITIALIZE</button>
+            <button class="btn" style="background: var(--neon-blue); width: 100%; color: #000;" onclick="Portal.login()">AUTHENTICATE</button>
             <p id="auth-error" style="color: var(--neon-red); margin-top: 10px; display: none;">ACCESS DENIED</p>
         </div>
     </div>
@@ -61,7 +61,7 @@
         </div>
         <div class="db-frame">
             <table>
-                <thead><tr><th>UUID</th><th>TIMESTAMP</th><th>DESCRIPTION</th><th>VOLUME</th><th>STATUS</th></tr></thead>
+                <thead><tr><th>ID</th><th>DATE</th><th>DESCRIPTION</th><th>AMOUNT</th><th>STATUS</th></tr></thead>
                 <tbody id="table-body"></tbody>
             </table>
         </div>
@@ -69,20 +69,24 @@
 
     <div id="modal-editor" class="modal">
         <div class="modal-box">
-            <h2 style="color: var(--neon-blue); margin-bottom: 1rem;">DATABASE ENTRY</h2>
+            <h2 style="color: var(--neon-blue); margin-bottom: 1rem;">NEW RECORD</h2>
             <input type="text" id="e-desc" placeholder="DESCRIPTION">
-            <input type="number" id="e-amt" placeholder="AMOUNT">
+            <input type="number" id="e-amt" placeholder="AMOUNT (Negative for Expense)">
             <select id="e-status"><option value="CLEAR">CLEAR</option><option value="PENDING">PENDING</option></select>
-            <button class="btn" style="background: var(--neon-blue); width: 100%; color: #000;" onclick="Portal.save()">SYNC TO SUPABASE</button>
-            <button class="btn" style="background: #334155; width: 100%; margin-top: 10px; color:#fff;" onclick="Portal.closeEditor()">ABORT</button>
+            <button class="btn" style="background: var(--neon-blue); width: 100%; color: #000;" onclick="Portal.save()">SAVE TO DB</button>
+            <button class="btn" style="background: #334155; width: 100%; margin-top: 10px; color:#fff;" onclick="Portal.closeEditor()">CANCEL</button>
         </div>
     </div>
 
 <script>
-    // INITIALIZE SUPABASE CLIENT
+    // --- SUPABASE CONFIGURATION ---
     const _URL = 'https://cumebdvojadpxaxdmabb.supabase.co';
-    const _KEY = 'PASTE_YOUR_PUBLISHABLE_ANON_KEY_HERE';
-    const supabase = supabase.createClient(_URL, _KEY);
+    
+    // !!! PASTE YOUR ANON KEY INSIDE THE QUOTES BELOW !!!
+    const _KEY = 'PASTE_YOUR_ANON_KEY_HERE'; 
+
+    // Initialize Client (Renamed to avoid conflict)
+    const supabaseClient = window.supabase.createClient(_URL, _KEY);
 
     const Portal = {
         user: null, role: null, data: [],
@@ -91,33 +95,59 @@
             const u = document.getElementById('user-id').value;
             const k = document.getElementById('user-key').value;
             
-            // AUTH FROM 'profiles' TABLE
-            const { data, error } = await supabase.from('profiles').select('*').eq('username', u).eq('passcode', k).single();
-            
-            if (data) {
-                this.user = data.username; this.role = data.role;
-                document.getElementById('gate-keeper').style.display = 'none';
-                document.getElementById('main-interface').style.display = 'block';
-                this.sync();
-            } else { document.getElementById('auth-error').style.display = 'block'; }
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('username', u)
+                    .eq('passcode', k)
+                    .single();
+                
+                if (data) {
+                    this.user = data.username; 
+                    this.role = data.role;
+                    document.getElementById('gate-keeper').style.display = 'none';
+                    document.getElementById('main-interface').style.display = 'block';
+                    if(this.role === 'Admin') document.getElementById('role-tag').innerHTML = ' // ADMIN';
+                    this.sync();
+                } else {
+                    console.error(error);
+                    document.getElementById('auth-error').style.display = 'block';
+                }
+            } catch (err) { alert("Connection Error. Check Console."); console.error(err); }
         },
 
         async sync() {
-            let query = supabase.from('ledger').select('*');
+            let query = supabaseClient.from('ledger').select('*').order('created_at', { ascending: false });
             if(this.role !== 'Admin') query = query.eq('owner', this.user);
-            const { data } = await query;
-            this.data = data || [];
-            this.render();
+            
+            const { data, error } = await query;
+            if(data) {
+                this.data = data;
+                this.render();
+            }
         },
 
         render() {
             const body = document.getElementById('table-body');
             let rev = 0, exp = 0; body.innerHTML = '';
+            
             this.data.forEach(item => {
                 const val = parseFloat(item.amount);
                 if(val > 0) rev += val; else exp += Math.abs(val);
-                body.innerHTML += `<tr><td>#${item.id}</td><td>${new Date(item.created_at).toLocaleDateString()}</td><td>${item.description}</td><td style="color:${val > 0 ? 'var(--neon-blue)':'#f87171'}">$${Math.abs(val).toFixed(2)}</td><td>${item.status}</td></tr>`;
+                
+                body.innerHTML += `
+                    <tr>
+                        <td style="color:var(--neon-blue)">#${item.id}</td>
+                        <td>${new Date(item.created_at).toLocaleDateString()}</td>
+                        <td><strong>${item.description}</strong></td>
+                        <td style="color:${val > 0 ? 'var(--neon-blue)':'#f87171'}">
+                            ${val > 0 ? '+':''}$${Math.abs(val).toFixed(2)}
+                        </td>
+                        <td>${item.status}</td>
+                    </tr>`;
             });
+            
             document.getElementById('v-rev').innerText = `$${rev.toFixed(2)}`;
             document.getElementById('v-exp').innerText = `$${exp.toFixed(2)}`;
             document.getElementById('v-liq').innerText = `$${(rev - exp).toFixed(2)}`;
@@ -130,8 +160,10 @@
                 status: document.getElementById('e-status').value,
                 owner: this.user
             };
-            await supabase.from('ledger').insert([payload]); //
-            this.closeEditor(); this.sync();
+            
+            const { error } = await supabaseClient.from('ledger').insert([payload]);
+            if(error) alert("Save Failed: " + error.message);
+            else { this.closeEditor(); this.sync(); }
         },
 
         openEditor() { document.getElementById('modal-editor').style.display = 'flex'; },
