@@ -2,81 +2,84 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ARK Admin | Data Management</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fraunces:wght@700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <title>ARK GOD MODE</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* Admin Specific Overrides */
+    .god-layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; height: 100vh; padding: 20px; }
+    .user-list { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .user-card { padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; border: 1px solid transparent; }
+    .user-card:hover, .user-card.active { border-color: var(--accent-gold); background: rgba(255,255,255,0.1); }
+  </style>
 </head>
 <body class="admin-theme">
 
-  <div id="app" class="app-container">
+  <div class="god-layout">
     <aside class="sidebar glass-panel">
-      <div style="text-align:center; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.10);">
-        <h1 style="font-family:Fraunces; font-size: 22px; color:var(--accent-gold);">
-          ARK ADMIN
-        </h1>
-        <div class="role-badge" style="background:var(--accent-gold); color:white;">Database Mode</div>
+      <div style="padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1);">
+        <h2 style="margin:0; color:var(--accent-gold);">USERS</h2>
       </div>
-
-      <nav>
-        <div class="label" style="margin-left:15px; margin-bottom:10px;">Select Table</div>
-        <div class="nav-item active" onclick="Admin.loadTable('transactions', this)"><i class="fa-solid fa-list"></i> Transactions</div>
-        <div class="nav-item" onclick="Admin.loadTable('accounts', this)"><i class="fa-solid fa-wallet"></i> Accounts</div>
-        <div class="nav-item" onclick="Admin.loadTable('pantry_items', this)"><i class="fa-solid fa-box"></i> Pantry Items</div>
-        <div class="nav-item" onclick="Admin.loadTable('invoices', this)"><i class="fa-solid fa-file-invoice"></i> Invoices</div>
-      </nav>
-
-      <div style="margin-top:auto;">
-        <a href="index.html" class="btn-ghost" style="width:100%; justify-content:center;">
-          <i class="fa-solid fa-arrow-left"></i> Back to App
-        </a>
-      </div>
+      <div id="user-list" class="user-list">Loading...</div>
+      <button class="btn-danger" style="margin-top:auto;" onclick="Admin.logout()">LOGOUT</button>
     </aside>
 
-    <main class="glass-panel">
+    <main class="glass-panel" id="main-panel" style="display:none; flex-direction:column;">
       <div class="toprow">
         <div>
-          <h2 class="title" id="table-title">Transactions</h2>
-          <p class="subtitle">Raw data management. <span style="color:var(--accent-gold);">Edit with caution.</span></p>
+           <h1 class="title" id="m-email">User</h1>
+           <div class="subtitle" id="m-uid">ID</div>
         </div>
         <div class="row">
-          <button class="btn-elite" style="background:var(--accent-gold); color:white;" onclick="Admin.refreshTable()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+           <button class="btn-elite" onclick="Admin.modalAccount()">+ Add Account</button>
+           <button class="btn-ghost" onclick="Admin.modalTransfer()">Transfer Funds</button>
         </div>
       </div>
 
-      <div class="tablewrap" style="margin-top:20px;">
-        <table class="data-grid">
-          <thead id="grid-head"></thead>
-          <tbody id="grid-body"></tbody>
-        </table>
-        <div id="loading" class="muted" style="padding:20px; text-align:center;">Loading data...</div>
+      <div class="row" style="margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">
+         <button class="btn-ghost" onclick="Admin.view('accounts')">Accounts</button>
+         <button class="btn-ghost" onclick="Admin.view('bills')">Bills</button>
+         <button class="btn-ghost" onclick="Admin.view('chat')">Messages</button>
       </div>
+
+      <div id="view-accounts" class="accounts-grid"></div>
+      <div id="view-bills" class="pantry-grid" style="display:none;"></div>
+      <div id="view-chat" class="chat-container" style="display:none;"></div>
+      
+      <div id="admin-chat-input" class="chat-input-area" style="display:none;">
+          <input id="msg-in" class="input" placeholder="Reply to user..." />
+          <button class="btn-elite" onclick="Admin.sendMsg()">SEND</button>
+      </div>
+
     </main>
   </div>
 
-  <div id="edit-modal" class="modal" onclick="Admin.closeModal(event)">
-    <div class="sheet">
-      <div class="sheethead">
-        <h4>Edit Record</h4>
-        <button class="btn-ghost btn-mini" onclick="Admin.closeModal()"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div class="sheetbody">
-        <div id="edit-form" class="edit-form-grid"></div>
-        <div id="modal-error" class="err"></div>
-        <div class="row" style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px;">
-          <button class="btn-danger" onclick="Admin.deleteRecord()">Delete Record</button>
-          <div style="flex:1;"></div>
-          <button class="btn-elite" style="background:var(--accent-gold); color:white;" onclick="Admin.saveRecord()">Save Changes</button>
+  <div id="modal-acc" class="modal" onclick="if(event.target.id==='modal-acc') this.style.display='none'">
+     <div class="sheet">
+        <div class="sheethead"><h4>Add Account</h4></div>
+        <div class="sheetbody">
+           <input id="new-acc-name" class="input" placeholder="Account Name" />
+           <select id="new-acc-cat" class="select"><option value="Personal">Personal</option><option value="Business">Business</option></select>
+           <button class="btn-elite" onclick="Admin.createAccount()">Create</button>
         </div>
-      </div>
-    </div>
+     </div>
   </div>
 
-  <script src="admin.js"></script>
+  <div id="modal-tx" class="modal" onclick="if(event.target.id==='modal-tx') this.style.display='none'">
+     <div class="sheet">
+        <div class="sheethead"><h4>Transfer Funds</h4></div>
+        <div class="sheetbody">
+           <div class="label">Source Account ID</div>
+           <input id="tx-from" class="input" placeholder="Source Account ID (Copy from list)" />
+           <div class="label">Target Account ID</div>
+           <input id="tx-to" class="input" placeholder="Target Account ID (Copy from list)" />
+           <input id="tx-amt" class="input" type="number" placeholder="Amount" />
+           <button class="btn-elite" onclick="Admin.transfer()">Execute</button>
+        </div>
+     </div>
+  </div>
+
+  <script src="admin_app.js"></script>
 </body>
 </html>
