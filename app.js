@@ -1,13 +1,10 @@
 /**********************************************************
- * ARK VORD 8.0 Full (Unified)
+ * ARK VORD 8.0 Full (Robust)
  **********************************************************/
 
 const SUPABASE_URL = "https://cumebdvojadpxaxdmabb.supabase.co";
 const SUPABASE_KEY = "sb_publishable_uTgHvSCKusJCK8aSfejzbw_Oxket8q2";
-let sb;
-try {
-   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-} catch(e) { console.error("Supabase init failed:", e); }
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const fmt = (n) => {
   const v = Number(n || 0);
@@ -69,15 +66,22 @@ const Ark = {
     document.getElementById("gate").style.display = "none";
     document.getElementById("app").style.display = "grid";
 
+    // --- SAFE UPDATE OF UI ELEMENTS ---
+    // We check if the element exists before setting text to prevent crashes
+    const setText = (id, text) => {
+      const el = document.getElementById(id);
+      if(el) el.textContent = text;
+    };
+
     const email = this.user?.email || "User";
     const uid = this.user?.id || "—";
     const created = this.user?.created_at ? new Date(this.user.created_at).toLocaleDateString() : "—";
     
-    document.getElementById("mini-who").textContent = email;
-    document.getElementById("prof-email").textContent = email;
-    document.getElementById("prof-uid").textContent = uid;
-    document.getElementById("prof-date").textContent = created;
-    document.getElementById("ui-clientid").textContent = uid.slice(0, 12);
+    setText("mini-who", email);
+    setText("prof-email", email);
+    setText("prof-uid", uid);
+    setText("prof-date", created);
+    setText("ui-clientid", uid.slice(0, 12));
 
     await this.loadRole();
     await this.loadAccounts();
@@ -86,6 +90,8 @@ const Ark = {
       await this.createDefaultAccountsIfNone();
       await this.loadAccounts();
     }
+    
+    // Default to ledger
     this.switchTab("ledger", document.querySelector(".nav-item"));
     await this.refreshAll();
   },
@@ -93,35 +99,50 @@ const Ark = {
   async loadRole() {
     this.role = "Authenticated";
     const badge = document.getElementById("role-display");
-    badge.innerHTML = `<i class="fa-solid fa-shield-halved"></i><span>${this.escape(this.role)}</span>`;
+    if(badge) badge.innerHTML = `<i class="fa-solid fa-shield-halved"></i><span>${this.escape(this.role)}</span>`;
   },
 
   async loadAccounts() {
+    // Fetches accounts shared with you OR owned by you
     const { data, error } = await sb.from("accounts").select("*").order("created_at", { ascending: true });
-    if (error) { console.error(error); return; }
+    if (error) { console.error("Error loading accounts:", error); return; }
+    
     this.accounts = (data || []).map(a => {
       const numSuffix = a.id.replace(/\D/g, '').slice(0,4).padEnd(4, '0'); 
       const accNum = `**** ${numSuffix}`;
-      let subType = "Standard Plan";
-      if (a.type.toUpperCase().includes("CHECKING")) subType = "Enterprise Checking";
-      if (a.type.toUpperCase().includes("SAVINGS")) subType = "Platinum Reserve";
-      return { ...a, balance: 0, displayNum: accNum, displaySub: subType };
+      
+      let subType = a.category || "Standard Plan";
+      // If I am NOT the owner, mark it clearly
+      if (this.user && a.user_id !== this.user.id) {
+        subType = "Shared / Loan View";
+      } else {
+        if (a.category === "Business") subType = "Enterprise Checking";
+        if (a.category === "Personal") subType = "Personal Checking";
+      }
+
+      return { 
+        ...a, 
+        balance: 0, 
+        displayNum: accNum, 
+        displaySub: subType 
+      };
     });
   },
 
   async createDefaultAccountsIfNone() {
     if (this.accounts.length) return;
     if (!this.user?.id) return;
-    const uid = this.user.id;
+    
+    // Only create default accounts if you are the OWNER (not viewing shared ones)
     const payload = [
-      { user_id: uid, name: "Primary Checking", type: "CHECKING" },
-      { user_id: uid, name: "Primary Savings", type: "SAVINGS" }
+      { user_id: this.user.id, name: "Primary Checking", category: "Personal" },
+      { user_id: this.user.id, name: "Business Ops", category: "Business" }
     ];
     await sb.from("accounts").insert(payload);
   },
 
   paintAccountPickers() {
-    const mk = (a) => `<option value="${a.id}">${this.escape(`${a.name} • ${a.type}`)}</option>`;
+    const mk = (a) => `<option value="${a.id}">${this.escape(`${a.name} • ${a.displaySub}`)}</option>`;
     const from = document.getElementById("x-from");
     const to = document.getElementById("x-to");
     if(from) from.innerHTML = this.accounts.map(mk).join("");
@@ -133,6 +154,7 @@ const Ark = {
     document.querySelectorAll('main > section').forEach(s => s.style.display = 'none');
     const view = document.getElementById('view-' + tabId);
     if (view) view.style.display = 'block';
+
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     if (el) el.classList.add('active');
   },
@@ -148,8 +170,12 @@ const Ark = {
 
   async calculateAllBalances() {
     if(!this.user?.id) return;
-    const { data, error } = await sb.from("transactions").select("account_id, amount, status").eq("user_id", this.user.id);
-    if(error) return console.error(error);
+    // We fetch transactions where we are the owner OR the account is shared with us
+    // RLS handles the permission logic, so just select * is fine if policies are set
+    const { data, error } = await sb.from("transactions").select("account_id, amount, status");
+    
+    if(error) { console.error("Balance Calc Error:", error); return; }
+    
     this.accounts.forEach(a => a.balance = 0);
     data.forEach(t => {
       const amt = Number(t.amount);
@@ -199,8 +225,13 @@ const Ark = {
     this.paintAccountPickers();
     const acc = this.accounts.find(a => a.id === accountId);
     if(!acc) return;
-    document.getElementById("dtl-name").textContent = acc.name;
-    document.getElementById("dtl-sub").textContent = `${acc.displayNum} • ${acc.displaySub}`;
+    
+    const dtlName = document.getElementById("dtl-name");
+    if(dtlName) dtlName.textContent = acc.name;
+    
+    const dtlSub = document.getElementById("dtl-sub");
+    if(dtlSub) dtlSub.textContent = `${acc.displayNum} • ${acc.displaySub}`;
+    
     const { data: txs, error } = await sb.from("transactions").select("*").eq("account_id", accountId).order("created_at", { ascending: false });
 
     let available = 0;
@@ -214,34 +245,38 @@ const Ark = {
     const creditLimit = Math.max(5000, available * 1.5); 
     const creditAvail = creditLimit - pendingHold;
 
-    document.getElementById("dtl-avail").textContent = fmt(available);
-    document.getElementById("dtl-pend").textContent = fmt(pendingHold);
-    document.getElementById("dtl-credit").textContent = fmt(creditAvail);
+    const setText = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+    setText("dtl-avail", fmt(available));
+    setText("dtl-pend", fmt(pendingHold));
+    setText("dtl-credit", fmt(creditAvail));
 
     const body = document.getElementById("dtl-tx-body");
-    body.innerHTML = "";
-    if(!txs || !txs.length) {
-      body.innerHTML = `<tr><td colspan="5" class="muted">No transactions.</td></tr>`;
-    } else {
-      txs.forEach(t => {
-        const ref = (t.id || "").toString().slice(0, 8).toUpperCase();
-        const date = t.created_at ? new Date(t.created_at).toLocaleDateString() : "—";
-        const desc = this.escape(t.description || "—");
-        const status = (t.status || "POSTED").toUpperCase();
-        const dot = status === "PENDING" ? "pending" : "posted";
-        const amt = Number(t.amount || 0);
-        const cls = amt >= 0 ? "money-pos" : "money-neg";
-        body.innerHTML += `
-          <tr>
-            <td>${ref}</td>
-            <td>${date}</td>
-            <td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:320px;"><strong>${desc}</strong></td>
-            <td><span class="tag"><span class="dot ${dot}"></span>${status}</span></td>
-            <td class="${cls}">${fmt(amt)}</td>
-          </tr>`;
-      });
+    if(body) {
+        body.innerHTML = "";
+        if(!txs || !txs.length) {
+          body.innerHTML = `<tr><td colspan="5" class="muted">No transactions.</td></tr>`;
+        } else {
+          txs.forEach(t => {
+            const ref = (t.id || "").toString().slice(0, 8).toUpperCase();
+            const date = t.created_at ? new Date(t.created_at).toLocaleDateString() : "—";
+            const desc = this.escape(t.description || "—");
+            const status = (t.status || "POSTED").toUpperCase();
+            const dot = status === "PENDING" ? "pending" : "posted";
+            const amt = Number(t.amount || 0);
+            const cls = amt >= 0 ? "money-pos" : "money-neg";
+            body.innerHTML += `
+              <tr>
+                <td>${ref}</td>
+                <td>${date}</td>
+                <td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:320px;"><strong>${desc}</strong></td>
+                <td><span class="tag"><span class="dot ${dot}"></span>${status}</span></td>
+                <td class="${cls}">${fmt(amt)}</td>
+              </tr>`;
+          });
+        }
     }
-    document.getElementById("account-detail-modal").style.display = "flex";
+    const modal = document.getElementById("account-detail-modal");
+    if(modal) modal.style.display = "flex";
   },
 
   closeAccountDetails(e) {
@@ -250,6 +285,7 @@ const Ark = {
     }
   },
 
+  // --- Sub-modules (Safe Checks) ---
   async refreshPantry() {
     if (!this.activeAccountId) return;
     const { data } = await sb.from("pantry_items").select("*").eq("account_id", this.activeAccountId).order("created_at", { ascending: false });
@@ -265,6 +301,7 @@ const Ark = {
     const { data } = await sb.from("subscriptions").select("*").eq("user_id", this.user.id).maybeSingle();
     this.subscription = data || null;
   },
+
   renderPantry() {
     const wrap = document.getElementById("pantry-list"); if(!wrap) return; wrap.innerHTML = "";
     if (!this.pantry.length) { wrap.innerHTML = `<div class="inventory-card"><div class="muted" style="font-size:12px;">No items.</div></div>`; return; }
@@ -287,13 +324,14 @@ const Ark = {
       const total = Number(inv.total ?? 0); const dot = (status === "PAID") ? "posted" : (status === "SENT") ? "pending" : "";
       const moneyCls = total >= 0 ? "money-pos" : "money-neg";
       body.innerHTML += `<tr><td>${num}</td><td>${date}</td><td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:360px;"><strong>${client}</strong></td><td><span class="tag"><span class="dot ${dot}"></span>${status}</span></td><td class="${moneyCls}">${fmt(total)}</td></tr>`;
-    }
-  },
+    },
   renderSubscriptions() {
     const plan = document.getElementById("sub-plan"); const status = document.getElementById("sub-status"); if(!plan || !status) return;
     if (!this.subscription) { plan.textContent = "—"; status.textContent = "—"; return; }
     plan.textContent = this.subscription.plan || "—"; status.textContent = this.subscription.status || "—";
   },
+
+  // ... (Keep existing composer and writer functions) ...
   openCompose(mode) {
     this.clearModalError();
     document.querySelectorAll(".input").forEach(i => i.value = "");
@@ -303,10 +341,17 @@ const Ark = {
     if(seg) seg.style.display = (mode === "transaction" || mode === "transfer") ? "flex" : "none";
     this.paintAccountPickers();
     this.switchComposeMode(mode);
-    document.getElementById("modal").style.display = "flex";
+    const modal = document.getElementById("modal");
+    if(modal) modal.style.display = "flex";
   },
-  closeCompose() { document.getElementById("modal").style.display = "none"; },
+  
+  closeCompose() { 
+    const modal = document.getElementById("modal");
+    if(modal) modal.style.display = "none"; 
+  },
+  
   modalBackdrop(e) { if (e.target && e.target.id === "modal") this.closeCompose(); },
+  
   switchComposeMode(mode) {
     this.composeMode = mode;
     const segT = document.getElementById("seg-transaction"); const segX = document.getElementById("seg-transfer");
@@ -314,11 +359,13 @@ const Ark = {
     ["mode-transaction", "mode-transfer", "mode-pantry", "mode-invoice"].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = "none"; });
     const show = document.getElementById("mode-" + mode); if (show) show.style.display = "block";
     const t = document.getElementById("modal-title"); const s = document.getElementById("modal-sub");
+    if(!t || !s) return;
     if(mode === "transaction") { t.textContent = "New Transaction"; s.textContent = "Deposit or withdrawal."; }
     else if(mode === "transfer") { t.textContent = "Transfer Funds"; s.textContent = "Move funds."; }
     else if(mode === "pantry") { t.textContent = "Inventory Item"; s.textContent = "Track stock."; }
     else if(mode === "invoice") { t.textContent = "Create Invoice"; s.textContent = "Issue bill."; }
   },
+
   async saveTransaction() {
     this.clearModalError();
     const desc = (document.getElementById("t-desc").value || "").trim();
