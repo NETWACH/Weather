@@ -2,24 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ARK GOD MODE</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    /* Admin Specific Overrides */
-    .god-layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; height: 100vh; padding: 20px; }
-    .user-list { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-    .user-card { padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; border: 1px solid transparent; }
-    .user-card:hover, .user-card.active { border-color: var(--accent-gold); background: rgba(255,255,255,0.1); }
-  </style>
 </head>
 <body class="admin-theme">
 
   <div class="god-layout">
     <aside class="sidebar glass-panel">
       <div style="padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1);">
-        <h2 style="margin:0; color:var(--accent-gold);">USERS</h2>
+        <h2 style="margin:0; color:var(--accent-gold); font-family:Fraunces;">USERS</h2>
+        <div class="muted" style="font-size:11px;">Select a client to manage</div>
       </div>
       <div id="user-list" class="user-list">Loading...</div>
       <button class="btn-danger" style="margin-top:auto;" onclick="Admin.logout()">LOGOUT</button>
@@ -38,15 +33,15 @@
       </div>
 
       <div class="row" style="margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">
-         <button class="btn-ghost" onclick="Admin.view('accounts')">Accounts</button>
-         <button class="btn-ghost" onclick="Admin.view('bills')">Bills</button>
-         <button class="btn-ghost" onclick="Admin.view('chat')">Messages</button>
+         <button class="btn-ghost" onclick="Admin.view('accounts')"><i class="fa-solid fa-wallet"></i> Accounts</button>
+         <button class="btn-ghost" onclick="Admin.view('bills')"><i class="fa-solid fa-file-invoice"></i> Bills</button>
+         <button class="btn-ghost" onclick="Admin.view('chat')"><i class="fa-solid fa-comments"></i> Chat</button>
       </div>
 
       <div id="view-accounts" class="accounts-grid"></div>
       <div id="view-bills" class="pantry-grid" style="display:none;"></div>
-      <div id="view-chat" class="chat-container" style="display:none;"></div>
       
+      <div id="view-chat" class="chat-container" style="display:none; flex:1; margin-bottom:10px;"></div>
       <div id="admin-chat-input" class="chat-input-area" style="display:none;">
           <input id="msg-in" class="input" placeholder="Reply to user..." />
           <button class="btn-elite" onclick="Admin.sendMsg()">SEND</button>
@@ -59,7 +54,7 @@
      <div class="sheet">
         <div class="sheethead"><h4>Add Account</h4></div>
         <div class="sheetbody">
-           <input id="new-acc-name" class="input" placeholder="Account Name" />
+           <input id="new-acc-name" class="input" placeholder="Account Name (e.g. Savings)" />
            <select id="new-acc-cat" class="select"><option value="Personal">Personal</option><option value="Business">Business</option></select>
            <button class="btn-elite" onclick="Admin.createAccount()">Create</button>
         </div>
@@ -70,16 +65,16 @@
      <div class="sheet">
         <div class="sheethead"><h4>Transfer Funds</h4></div>
         <div class="sheetbody">
-           <div class="label">Source Account ID</div>
-           <input id="tx-from" class="input" placeholder="Source Account ID (Copy from list)" />
+           <div class="label">Source Account ID (Copy from account list)</div>
+           <input id="tx-from" class="input" placeholder="Source UUID" />
            <div class="label">Target Account ID</div>
-           <input id="tx-to" class="input" placeholder="Target Account ID (Copy from list)" />
+           <input id="tx-to" class="input" placeholder="Target UUID" />
            <input id="tx-amt" class="input" type="number" placeholder="Amount" />
            <button class="btn-elite" onclick="Admin.transfer()">Execute</button>
         </div>
      </div>
   </div>
 
-  <script src="admin_app.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>
