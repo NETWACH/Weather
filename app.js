@@ -1,5 +1,5 @@
 /**********************************************************
- * ARK VORD 8.0 Full (Final Fix)
+ * ARK VORD 8.0 Full (Consolidated Fix)
  **********************************************************/
 
 const SUPABASE_URL = "https://cumebdvojadpxaxdmabb.supabase.co";
@@ -117,6 +117,7 @@ const Ark = {
       badge.style.background = color;
     }
 
+    // Hide Buttons for Non-Admins
     if (!isAdmin) {
       document.querySelectorAll(".btn-elite").forEach(el => el.style.display = 'none');
       const adminLink = document.querySelector('a[href="admin.html"]');
@@ -488,9 +489,8 @@ const Ark = {
   modalError(msg) { const el = document.getElementById("modal-error"); if(el) { el.style.display = "block"; el.textContent = msg; } },
   clearModalError() { const el = document.getElementById("modal-error"); if(el) el.style.display = "none"; },
   escape(s) { return String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m])); }
-}; // END OF ARK OBJECT
+}; 
 
-// --- START ---
 Ark.checkSession(false);
 
 window.addEventListener("keydown", (e) => {
