@@ -29,7 +29,16 @@
   </div>
 
   <div id="app" class="app-container" style="display:none;">
-    <aside class="sidebar glass-panel">
+    <aside class="sidebar glass-panel mac-window">
+      <div class="titlebar" aria-hidden="true">
+        <div class="traffic">
+          <span class="tl close" title="Close"></span>
+          <span class="tl min" title="Minimize"></span>
+          <span class="tl max" title="Maximize"></span>
+        </div>
+        <div class="titlebar-title">ARK Finance</div>
+        <div class="titlebar-right"><span class="titlebar-chip">Client</span></div>
+      </div>
       <div style="text-align:center; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1);">
         <h1 style="font-family:Fraunces; color:var(--accent-ice);">ARK FINANCE</h1>
         <div class="role-badge" style="background:var(--accent-ice);">CLIENT MODE</div>
@@ -44,7 +53,19 @@
       </div>
     </aside>
 
-    <main class="glass-panel">
+    <main class="glass-panel mac-window">
+      <div class="titlebar" aria-hidden="true">
+        <div class="traffic">
+          <span class="tl close" title="Close"></span>
+          <span class="tl min" title="Minimize"></span>
+          <span class="tl max" title="Maximize"></span>
+        </div>
+        <div class="titlebar-title">Client Portal</div>
+        <div class="titlebar-right">
+          <button class="titlebar-icon" title="Search" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
+          <button class="titlebar-icon" title="Settings" type="button"><i class="fa-solid fa-gear"></i></button>
+        </div>
+      </div>
       <section id="view-ledger">
         <div class="toprow"><h2 class="title">My Accounts</h2></div>
         <div id="grid-accounts" class="accounts-grid">Loading...</div>
