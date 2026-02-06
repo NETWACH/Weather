@@ -11,87 +11,84 @@
 <body class="admin-theme">
 
   <div class="god-layout">
-    <aside class="sidebar glass-panel mac-window">
-      <div class="titlebar" aria-hidden="true">
-        <div class="traffic">
-          <span class="tl close" title="Close"></span>
-          <span class="tl min" title="Minimize"></span>
-          <span class="tl max" title="Maximize"></span>
-        </div>
-        <div class="titlebar-title">Ark Vord Console</div>
-        <div class="titlebar-right"><span class="titlebar-chip">Admin</span></div>
+    <aside class="sidebar glass-panel">
+      <div class="titlebar">
+        <div class="traffic"><span class="tl close"></span><span class="tl min"></span><span class="tl max"></span></div>
       </div>
-      <div style="padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1);">
-        <h2 style="margin:0; color:var(--accent-gold); font-family:Fraunces;">USERS</h2>
-        <div class="muted" style="font-size:11px;">Select a client to manage</div>
+      <div style="padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:center;">
+        <h2 style="font-family:Fraunces; color:var(--accent-gold);">OVERWATCH</h2>
+        <div class="muted" style="font-size:10px; letter-spacing:2px; text-transform:uppercase;">Admin Console</div>
       </div>
-      <div id="user-list" class="user-list">Loading...</div>
-      <button class="btn-danger" style="margin-top:auto;" onclick="Admin.logout()">LOGOUT</button>
+      <div id="user-list" class="user-list">Loading subjects...</div>
+      <button class="btn-danger" style="margin-top:auto; justify-content:center;" onclick="Admin.logout()">
+        <i class="fa-solid fa-lock"></i> SECURE LOGOUT
+      </button>
     </aside>
 
-    <main class="glass-panel mac-window" id="main-panel" style="display:none; flex-direction:column;">
-      <div class="titlebar" aria-hidden="true">
-        <div class="traffic">
-          <span class="tl close" title="Close"></span>
-          <span class="tl min" title="Minimize"></span>
-          <span class="tl max" title="Maximize"></span>
-        </div>
-        <div class="titlebar-title">God Mode</div>
-        <div class="titlebar-right">
-          <button class="titlebar-icon" title="Search" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
-          <button class="titlebar-icon" title="Settings" type="button"><i class="fa-solid fa-gear"></i></button>
-        </div>
+    <main class="glass-panel" id="main-panel" style="display:none;">
+      <div class="titlebar">
+        <div class="titlebar-title" style="color:var(--accent-gold);">God Mode Active</div>
       </div>
-      <div class="toprow">
-        <div>
-           <h1 class="title" id="m-email">User</h1>
-           <div class="subtitle" id="m-uid">ID</div>
-        </div>
-        <div class="row">
-           <button class="btn-elite" onclick="Admin.modalAccount()">+ Add Account</button>
-           <button class="btn-ghost" onclick="Admin.modalTransfer()">Transfer Funds</button>
-        </div>
-      </div>
-
-      <div class="row" style="margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">
-         <button class="btn-ghost" onclick="Admin.view('accounts')"><i class="fa-solid fa-wallet"></i> Accounts</button>
-         <button class="btn-ghost" onclick="Admin.view('bills')"><i class="fa-solid fa-file-invoice"></i> Bills</button>
-         <button class="btn-ghost" onclick="Admin.view('chat')"><i class="fa-solid fa-comments"></i> Chat</button>
-      </div>
-
-      <div id="view-accounts" class="accounts-grid"></div>
-      <div id="view-bills" class="pantry-grid" style="display:none;"></div>
       
-      <div id="view-chat" class="chat-container" style="display:none; flex:1; margin-bottom:10px;"></div>
-      <div id="admin-chat-input" class="chat-input-area" style="display:none;">
-          <input id="msg-in" class="input" placeholder="Reply to user..." />
-          <button class="btn-elite" onclick="Admin.sendMsg()">SEND</button>
+      <div style="padding: 30px 30px 0;">
+        <div class="toprow" style="margin-bottom:10px;">
+          <div>
+             <h1 class="title" id="m-email">User</h1>
+             <div class="subtitle mono muted" id="m-uid" style="font-size:12px;">ID</div>
+          </div>
+          <div style="display:flex; gap:10px;">
+             <button class="btn-elite" onclick="Admin.modalAccount()"><i class="fa-solid fa-plus"></i> Account</button>
+             <button class="btn-ghost" onclick="Admin.modalTransfer()"><i class="fa-solid fa-money-bill-transfer"></i> Transfer</button>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px; margin-bottom:20px;">
+           <button class="btn-ghost" onclick="Admin.view('accounts')">Accounts</button>
+           <button class="btn-ghost" onclick="Admin.view('bills')">Bills</button>
+           <button class="btn-ghost" onclick="Admin.view('chat')">Intercepts</button>
+        </div>
       </div>
+
+      <section id="view-accounts">
+        <div class="accounts-grid" id="grid-accounts-target"></div>
+      </section>
+
+      <section id="view-bills" style="display:none;">
+        <div id="grid-bills-target" class="pantry-grid"></div>
+      </section>
+      
+      <section id="view-chat" style="display:none;">
+        <div id="chat-stream" class="chat-container"></div>
+        <div id="admin-chat-input" class="chat-input-area">
+            <input id="msg-in" class="input" placeholder="Broadcast message..." />
+            <button class="btn-elite" onclick="Admin.sendMsg()">SEND</button>
+        </div>
+      </section>
 
     </main>
   </div>
 
   <div id="modal-acc" class="modal" onclick="if(event.target.id==='modal-acc') this.style.display='none'">
      <div class="sheet">
-        <div class="sheethead"><h4>Add Account</h4></div>
+        <div class="sheethead"><h4>Provision Account</h4></div>
         <div class="sheetbody">
-           <input id="new-acc-name" class="input" placeholder="Account Name (e.g. Savings)" />
+           <input id="new-acc-name" class="input" placeholder="Designation (e.g. Cayman Offshore)" />
            <select id="new-acc-cat" class="select"><option value="Personal">Personal</option><option value="Business">Business</option></select>
-           <button class="btn-elite" onclick="Admin.createAccount()">Create</button>
+           <button class="btn-elite" style="justify-content:center;" onclick="Admin.createAccount()">CREATE ASSET</button>
         </div>
      </div>
   </div>
 
   <div id="modal-tx" class="modal" onclick="if(event.target.id==='modal-tx') this.style.display='none'">
      <div class="sheet">
-        <div class="sheethead"><h4>Transfer Funds</h4></div>
+        <div class="sheethead"><h4>Wire Transfer</h4></div>
         <div class="sheetbody">
-           <div class="label">Source Account ID (Copy from account list)</div>
-           <input id="tx-from" class="input" placeholder="Source UUID" />
-           <div class="label">Target Account ID</div>
-           <input id="tx-to" class="input" placeholder="Target UUID" />
-           <input id="tx-amt" class="input" type="number" placeholder="Amount" />
-           <button class="btn-elite" onclick="Admin.transfer()">Execute</button>
+           <div class="muted" style="font-size:11px; text-transform:uppercase;">Source Hash</div>
+           <input id="tx-from" class="input" placeholder="Origin UUID" />
+           <div class="muted" style="font-size:11px; text-transform:uppercase;">Target Hash</div>
+           <input id="tx-to" class="input" placeholder="Destination UUID" />
+           <input id="tx-amt" class="input" type="number" placeholder="Volume (USD)" />
+           <button class="btn-elite" style="justify-content:center;" onclick="Admin.transfer()">EXECUTE</button>
         </div>
      </div>
   </div>
