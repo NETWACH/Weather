@@ -1,5 +1,5 @@
 /**********************************************************
- * ARK VORD 8.0 Full (Fixed & Verified)
+ * ARK VORD 8.0 Full (Final Fix)
  **********************************************************/
 
 const SUPABASE_URL = "https://cumebdvojadpxaxdmabb.supabase.co";
@@ -104,13 +104,11 @@ const Ark = {
 
   // --- 3. ROLES ---
   async loadRole() {
-    // Check if user is admin
     const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', this.user.id).maybeSingle();
     
     const isAdmin = profile?.is_admin === true;
     this.role = isAdmin ? "Administrator" : "Viewer";
 
-    // Update Badge
     const badge = document.getElementById("role-display");
     if(badge) {
       const color = isAdmin ? "var(--accent-gold)" : "var(--accent-ice)";
@@ -119,7 +117,6 @@ const Ark = {
       badge.style.background = color;
     }
 
-    // Hide Buttons for Non-Admins
     if (!isAdmin) {
       document.querySelectorAll(".btn-elite").forEach(el => el.style.display = 'none');
       const adminLink = document.querySelector('a[href="admin.html"]');
@@ -142,7 +139,6 @@ const Ark = {
       const accNum = `**** ${numSuffix}`;
       
       let subType = a.category || "Standard";
-      // Visual Flair for Shared Accounts
       if (this.user && a.user_id !== this.user.id) {
         subType = "Shared / Loan View";
       }
@@ -157,7 +153,7 @@ const Ark = {
   },
 
   async createDefaultAccountsIfNone() {
-    if (this.role !== "Administrator") return; // Viewers can't create
+    if (this.role !== "Administrator") return;
     if (this.accounts.length) return;
     
     const payload = [
@@ -267,7 +263,7 @@ const Ark = {
       else if(status === "PENDING" && amt < 0) { available += amt; pendingHold += Math.abs(amt); }
     });
     
-    const creditAvail = 5000 - pendingHold; // Mock limit
+    const creditAvail = 5000 - pendingHold; 
 
     const setText = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
     setText("dtl-avail", fmt(available));
@@ -352,3 +348,153 @@ const Ark = {
   renderInvoices() {
     const body = document.getElementById("inv-body"); if(!body) return; body.innerHTML = "";
     if (!this.invoices.length) { body.innerHTML = `<tr><td colspan="5" class="muted" style="padding:16px 12px;">No invoices.</td></tr>`; return; }
+    for (const inv of this.invoices) {
+      const num = String(inv.number || (inv.id || "").slice(0, 8).toUpperCase());
+      const date = inv.created_at ? new Date(inv.created_at).toLocaleDateString() : "—";
+      const client = String(inv.client || "—");
+      const status = String(inv.status || "DRAFT").toUpperCase();
+      const total = Number(inv.total ?? 0); 
+      const dot = (status === "PAID") ? "posted" : (status === "SENT") ? "pending" : "";
+      const moneyCls = total >= 0 ? "money-pos" : "money-neg";
+      body.innerHTML += `<tr><td>${num}</td><td>${date}</td><td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:360px;"><strong>${client}</strong></td><td><span class="tag"><span class="dot ${dot}"></span>${status}</span></td><td class="${moneyCls}">${fmt(total)}</td></tr>`;
+    }
+  },
+
+  renderSubscriptions() {
+    const plan = document.getElementById("sub-plan"); const status = document.getElementById("sub-status"); if(!plan || !status) return;
+    if (!this.subscription) { plan.textContent = "—"; status.textContent = "—"; return; }
+    plan.textContent = this.subscription.plan || "—"; status.textContent = this.subscription.status || "—";
+  },
+
+  // --- 5. WRITES ---
+  openCompose(mode) {
+    if(this.role !== 'Administrator') return alert("Access Denied: View Only.");
+    
+    this.clearModalError();
+    document.querySelectorAll(".input").forEach(i => i.value = "");
+    const ts = document.getElementById("t-status"); if (ts) ts.value = "POSTED";
+    const is = document.getElementById("i-status"); if (is) is.value = "DRAFT";
+    
+    const seg = document.getElementById("seg-ledger");
+    if(seg) seg.style.display = (mode === "transaction" || mode === "transfer") ? "flex" : "none";
+    
+    this.paintAccountPickers();
+    this.switchComposeMode(mode);
+    const modal = document.getElementById("modal");
+    if(modal) modal.style.display = "flex";
+  },
+  
+  closeCompose() { 
+    const modal = document.getElementById("modal");
+    if(modal) modal.style.display = "none"; 
+  },
+  
+  modalBackdrop(e) { if (e.target && e.target.id === "modal") this.closeCompose(); },
+  
+  switchComposeMode(mode) {
+    this.composeMode = mode;
+    const segT = document.getElementById("seg-transaction"); const segX = document.getElementById("seg-transfer");
+    if (segT && segX) { if (mode === "transfer") { segT.classList.remove("active"); segX.classList.add("active"); } else if (mode === "transaction") { segX.classList.remove("active"); segT.classList.add("active"); } }
+    ["mode-transaction", "mode-transfer", "mode-pantry", "mode-invoice"].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = "none"; });
+    const show = document.getElementById("mode-" + mode); if (show) show.style.display = "block";
+    
+    const t = document.getElementById("modal-title"); const s = document.getElementById("modal-sub");
+    if(!t || !s) return;
+    if(mode === "transaction") { t.textContent = "New Transaction"; s.textContent = "Deposit or withdrawal."; }
+    else if(mode === "transfer") { t.textContent = "Transfer Funds"; s.textContent = "Move funds."; }
+    else if(mode === "pantry") { t.textContent = "Inventory Item"; s.textContent = "Track stock."; }
+    else if(mode === "invoice") { t.textContent = "Create Invoice"; s.textContent = "Issue bill."; }
+  },
+
+  async saveTransaction() {
+    this.clearModalError();
+    const desc = (document.getElementById("t-desc").value || "").trim();
+    const amt = Number(document.getElementById("t-amt").value);
+    const status = document.getElementById("t-status").value;
+    if (!this.activeAccountId) return this.modalError("Select an account first.");
+    if (!desc) return this.modalError("Description required.");
+    if (!Number.isFinite(amt) || amt === 0) return this.modalError("Invalid amount.");
+    const payload = { user_id: this.user.id, account_id: this.activeAccountId, description: desc, amount: amt, status };
+    const { error } = await sb.from("transactions").insert([payload]);
+    if (error) return this.modalError(error.message);
+    this.closeCompose();
+    this.openAccountDetails(this.activeAccountId); this.refreshAll();
+  },
+
+  async saveTransfer() {
+    this.clearModalError();
+    const fromId = document.getElementById("x-from").value;
+    const toId = document.getElementById("x-to").value;
+    const amt = Number(document.getElementById("x-amt").value);
+    const memo = (document.getElementById("x-desc").value || "").trim();
+    if (!fromId || !toId) return this.modalError("Select accounts.");
+    if (fromId === toId) return this.modalError("Different accounts required.");
+    if (!Number.isFinite(amt) || amt <= 0) return this.modalError("Positive amount required.");
+    const label = memo ? memo : "Transfer";
+    const payload = [ { user_id: this.user.id, account_id: fromId, amount: -amt, description: `${label} (out)`, status: "POSTED" }, { user_id: this.user.id, account_id: toId, amount: amt, description: `${label} (in)`, status: "POSTED" } ];
+    const { error } = await sb.from("transactions").insert(payload);
+    if (error) return this.modalError(error.message);
+    this.closeCompose(); this.refreshAll();
+  },
+
+  async savePantryItem() {
+    this.clearModalError();
+    const name = (document.getElementById("p-name").value || "").trim();
+    const unit = (document.getElementById("p-unit").value || "").trim();
+    const qty = Number(document.getElementById("p-qty").value);
+    const par = Number(document.getElementById("p-par").value);
+    if (!this.activeAccountId) return this.modalError("Select account.");
+    if (!name) return this.modalError("Name required.");
+    if (!Number.isFinite(qty)) return this.modalError("Invalid qty.");
+    const payload = { user_id: this.user.id, account_id: this.activeAccountId, name, unit: unit || null, qty, par: par || null };
+    const { error } = await sb.from("pantry_items").insert([payload]);
+    if (error) return this.modalError(error.message);
+    this.closeCompose(); this.refreshPantry(); this.renderPantry();
+  },
+
+  async deletePantry(id) { await sb.from("pantry_items").delete().eq("id", id); this.refreshPantry(); this.renderPantry(); },
+
+  async saveInvoice() {
+    this.clearModalError();
+    const number = (document.getElementById("i-number").value || "").trim();
+    const client = (document.getElementById("i-client").value || "").trim();
+    const total = Number(document.getElementById("i-total").value);
+    if (!this.activeAccountId) return this.modalError("Select account.");
+    if (!client) return this.modalError("Client required.");
+    if (!Number.isFinite(total)) return this.modalError("Invalid total.");
+    const payload = { user_id: this.user.id, account_id: this.activeAccountId, number: number || null, client, total, status: document.getElementById("i-status").value };
+    const { error } = await sb.from("invoices").insert([payload]);
+    if (error) return this.modalError(error.message);
+    this.closeCompose(); this.refreshInvoices(); this.renderInvoices();
+  },
+
+  exportActive() {
+    if (this.activeTab === "pantry") return this.exportCSV(this.pantry, ["name","qty"], "pantry");
+    if (this.activeTab === "invoices") return this.exportCSV(this.invoices, ["number","client","total"], "invoices");
+    this.exportCSV(this.accounts, ["name","type"], "accounts");
+  },
+
+  exportCSV(data, keys, fname) {
+    const header = keys.join(",");
+    const rows = data.map(d => keys.map(k => `"${String(d[k] || "").replaceAll('"', '""')}"`).join(",")).join("\n");
+    const blob = new Blob([header + "\n" + rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `ark-${fname}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+  },
+
+  showLoginError(msg) { const el = document.getElementById("login-error"); if(el) { el.style.display = "block"; el.textContent = msg; } },
+  hideLoginError() { const el = document.getElementById("login-error"); if(el) el.style.display = "none"; },
+  modalError(msg) { const el = document.getElementById("modal-error"); if(el) { el.style.display = "block"; el.textContent = msg; } },
+  clearModalError() { const el = document.getElementById("modal-error"); if(el) el.style.display = "none"; },
+  escape(s) { return String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m])); }
+}; // END OF ARK OBJECT
+
+// --- START ---
+Ark.checkSession(false);
+
+window.addEventListener("keydown", (e) => {
+  if (document.getElementById("gate").style.display !== "none") return;
+  if (e.key === "Escape") { Ark.closeCompose(); const d = document.getElementById("account-detail-modal"); if(d) d.style.display="none"; }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "n") { e.preventDefault(); Ark.openCompose("transaction"); }
+});
