@@ -3,65 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ARK Vord 9.0 | Enterprise Command</title>
+  <title>ARK CLIENT PORTAL</title>
   
-  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fraunces:wght@700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+  
   <div id="gate" class="gate">
     <div class="login">
       <div class="loginhead">
-        <div style="display:flex; gap:12px; align-items:center; min-width:0;">
-          <div class="crest"><i class="fa-solid fa-landmark"></i></div>
-          <div style="min-width:0;">
-            <h3>ARK VORD</h3>
-            <div class="muted" style="font-size:11px; letter-spacing:.18em; text-transform:uppercase; margin-top:4px;">
-              Secure Access • Enterprise Command
-            </div>
-          </div>
+        <div style="display:flex; gap:12px; align-items:center;">
+          <div class="crest"><i class="fa-solid fa-shield-cat"></i></div>
+          <h3>CLIENT PORTAL</h3>
         </div>
-        <span class="tag"><span class="dot posted"></span>Protected</span>
       </div>
       <div class="loginbody">
-        <div class="label">Sign in</div>
-        <input class="input" id="login-email" type="email" placeholder="Email address" autocomplete="email" />
-        <input class="input" id="login-pass" type="password" placeholder="Password" autocomplete="current-password" />
-        <div class="row">
-          <button class="btn-elite" onclick="Ark.login()"><i class="fa-solid fa-arrow-right-to-bracket"></i>Enter</button>
-        </div>
-        <div id="login-error" class="err"></div>
+        <input class="input" id="login-email" type="email" placeholder="Email" />
+        <input class="input" id="login-pass" type="password" placeholder="Password" />
+        <button class="btn-elite" onclick="Ark.login()">SECURE LOGIN</button>
       </div>
     </div>
   </div>
 
   <div id="app" class="app-container" style="display:none;">
     <aside class="sidebar glass-panel">
-      <div style="text-align:center; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.10);">
-        <h1 style="font-family:Fraunces; font-size: 22px; color:var(--accent-gold);">
-          ARK VORD <span style="font-size:12px;">9.0</span>
-        </h1>
-        <div id="role-display" class="role-badge"><i class="fa-solid fa-shield-halved"></i><span>Authenticated</span></div>
+      <div style="text-align:center; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1);">
+        <h1 style="font-family:Fraunces; color:var(--accent-ice);">ARK FINANCE</h1>
+        <div id="role-display" class="role-badge">CLIENT MODE</div>
       </div>
 
       <nav>
-        <div class="nav-item active" onclick="Ark.switchTab('ledger', this)"><i class="fa-solid fa-vault"></i> Main Ledger</div>
-        <div class="nav-item" onclick="Ark.switchTab('pantry', this)"><i class="fa-solid fa-boxes-stacked"></i> Pantry / Inventory</div>
-        <div class="nav-item" onclick="Ark.switchTab('invoices', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Business Invoices</div>
-        <div class="nav-item" onclick="Ark.switchTab('settings', this)"><i class="fa-solid fa-gears"></i> Subscriptions</div>
+        <div class="nav-item active" onclick="Ark.switchTab('ledger')"><i class="fa-solid fa-wallet"></i> My Accounts</div>
+        <div class="nav-item" onclick="Ark.switchTab('bills')"><i class="fa-solid fa-file-invoice"></i> My Bills</div>
+        <div class="nav-item" onclick="Ark.switchTab('messages')"><i class="fa-solid fa-comments"></i> Message Center</div>
       </nav>
 
       <div class="user-widget">
         <div class="user-avatar-small"><i class="fa-solid fa-user"></i></div>
         <div class="user-info-text">
-          <div class="user-name-small" id="mini-who">User</div>
-          <div class="user-label-small">Account Info</div>
+          <div class="user-name-small" id="mini-who">...</div>
+          <div class="user-label-small">Secure Connection</div>
         </div>
-        <i class="fa-solid fa-chevron-right" style="font-size:10px; opacity:0.5; margin-left:auto;"></i>
       </div>
     </aside>
 
@@ -69,143 +54,178 @@
       
       <section id="view-ledger">
         <div class="toprow">
-          <div>
-            <h2 class="title">Accounts</h2>
-            <p class="subtitle">Ledger Management</p>
-          </div>
-          <div class="row">
-            <button class="btn-elite" onclick="Ark.openCompose('account')"><i class="fa-solid fa-user-plus"></i>Create Account</button>
-            <button class="btn-ghost" onclick="Ark.openCompose('transfer')"><i class="fa-solid fa-right-left"></i>Transfer / Pay</button>
-            <button class="btn-elite" onclick="Ark.openCompose('transaction')"><i class="fa-solid fa-circle-plus"></i>Entry</button>
+          <div><h2 class="title">Account Balance</h2><p class="subtitle">Current standing.</p></div>
+          <div class="row" id="admin-ledger-actions" style="display:none;">
+             <button class="btn-elite" onclick="Ark.openCompose('transaction')">Manage Funds</button>
           </div>
         </div>
-        <div id="accounts-grid" class="accounts-grid">
-           <div class="muted" style="grid-column:1/-1; padding:20px;">Loading accounts...</div>
-        </div>
+        <div id="accounts-grid" class="accounts-grid"></div>
       </section>
 
-      <section id="view-pantry" style="display:none;">
+      <section id="view-bills" style="display:none;">
         <div class="toprow">
-          <div>
-            <h2 class="title">Pantry Command</h2>
-            <p class="subtitle">Real-time inventory.</p>
-          </div>
-          <div class="row">
-            <button class="btn-elite" onclick="Ark.openCompose('pantry')"><i class="fa-solid fa-plus"></i>Add Item</button>
-          </div>
+          <div><h2 class="title">Bill Tracker</h2><p class="subtitle">Manage upcoming and past due payments.</p></div>
+          <button class="btn-elite" onclick="Ark.openCompose('bill')"><i class="fa-solid fa-plus"></i> Add Bill</button>
         </div>
-        <div class="pantry-grid" id="pantry-list"></div>
+        <div id="bills-grid" class="pantry-grid" style="margin-top:20px;"></div>
       </section>
 
-      <section id="view-invoices" style="display:none;">
+      <section id="view-messages" style="display:none; height:100%; flex-direction:column;">
         <div class="toprow">
-          <div>
-            <h2 class="title">Business Invoices</h2>
-            <p class="subtitle">Issue, track, and reconcile.</p>
-          </div>
-          <div class="row">
-            <button class="btn-elite" onclick="Ark.openCompose('invoice')"><i class="fa-solid fa-file-circle-plus"></i>New Invoice</button>
-          </div>
+          <div><h2 class="title">Comm-Link</h2><p class="subtitle">Direct line to Administration.</p></div>
         </div>
-        <div class="tablewrap">
-          <table class="enterprise-table">
-            <thead>
-              <tr><th>Invoice #</th><th>Date</th><th>Client</th><th>Status</th><th>Total</th></tr>
-            </thead>
-            <tbody id="inv-body"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="view-settings" style="display:none;">
-        <div class="toprow">
-          <div>
-            <h2 class="title">Subscriptions</h2>
-            <p class="subtitle">Plan, billing status, and service entitlements.</p>
-          </div>
-        </div>
-        <div class="grid-cards" style="grid-template-columns: repeat(2, minmax(0,1fr));">
-          <div class="card">
-            <div class="k">Plan</div>
-            <div id="sub-plan" class="v" style="font-size:22px;">—</div>
-          </div>
-          <div class="card">
-            <div class="k">Status</div>
-            <div id="sub-status" class="v" style="font-size:22px;">—</div>
-          </div>
-        </div>
-        <div style="margin-top:40px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1);">
-           <button class="btn-danger" onclick="Ark.logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out</button>
+        
+        <div id="chat-box" class="chat-container">
+            </div>
+        
+        <div class="chat-input-area">
+            <input id="msg-input" class="input" placeholder="Type a message..." />
+            <button class="btn-elite" onclick="Ark.sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
       </section>
 
     </main>
   </div>
 
-  <div id="account-detail-modal" class="modal" onclick="if(event.target.id === 'account-detail-modal') this.style.display='none'">
-    <div class="sheet large-sheet">
-      <div class="sheethead">
-        <div>
-          <h4 id="dtl-name">Account Details</h4>
-          <div class="muted" style="font-size:12px;margin-top:4px;" id="dtl-bal">$0.00</div>
-        </div>
-        <button class="btn-ghost btn-mini" onclick="document.getElementById('account-detail-modal').style.display='none'"><i class="fa-solid fa-xmark"></i></button>
-      </div>
+  <div id="modal" class="modal" onclick="if(event.target.id === 'modal') Ark.closeCompose()">
+    <div class="sheet">
+      <div class="sheethead"><h4>Compose</h4></div>
       <div class="sheetbody">
-        <h5 style="margin:0 0 10px; font-family:Fraunces,serif;">Transaction History</h5>
-        <div class="tablewrap" style="flex:1;">
-          <table class="enterprise-table">
-            <thead>
-              <tr><th>Date</th><th>Description</th><th>Amount</th></tr>
-            </thead>
-            <tbody id="dtl-tx-body"></tbody>
-          </table>
+        
+        <div id="mode-bill" style="display:none;">
+           <div class="label">Bill Type</div>
+           <select id="b-type" class="select">
+             <option value="Utility">Utility (Gas/Electric)</option>
+             <option value="Car">Car / Transport</option>
+             <option value="Rent">Rent / Mortgage</option>
+             <option value="Personal">Personal Loan</option>
+             <option value="Other">Other</option>
+           </select>
+           <div class="label">Details</div>
+           <input id="b-name" class="input" placeholder="Name (e.g. PG&E)" />
+           <input id="b-amt" class="input" type="number" placeholder="Amount Due" />
+           <div class="label">Due Date</div>
+           <input id="b-date" class="input" type="date" />
+           <button class="btn-elite" style="margin-top:15px;" onclick="Ark.saveBill()">Save Bill</button>
         </div>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ARK CLIENT PORTAL</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fraunces:wght@700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  
+  <div id="gate" class="gate">
+    <div class="login">
+      <div class="loginhead">
+        <div style="display:flex; gap:12px; align-items:center;">
+          <div class="crest"><i class="fa-solid fa-shield-cat"></i></div>
+          <h3>CLIENT PORTAL</h3>
+        </div>
+      </div>
+      <div class="loginbody">
+        <input class="input" id="login-email" type="email" placeholder="Email" />
+        <input class="input" id="login-pass" type="password" placeholder="Password" />
+        <button class="btn-elite" onclick="Ark.login()">SECURE LOGIN</button>
       </div>
     </div>
   </div>
 
+  <div id="app" class="app-container" style="display:none;">
+    <aside class="sidebar glass-panel">
+      <div style="text-align:center; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1);">
+        <h1 style="font-family:Fraunces; color:var(--accent-ice);">ARK FINANCE</h1>
+        <div id="role-display" class="role-badge">CLIENT MODE</div>
+      </div>
+
+      <nav>
+        <div class="nav-item active" onclick="Ark.switchTab('ledger')"><i class="fa-solid fa-wallet"></i> My Accounts</div>
+        <div class="nav-item" onclick="Ark.switchTab('bills')"><i class="fa-solid fa-file-invoice"></i> My Bills</div>
+        <div class="nav-item" onclick="Ark.switchTab('messages')"><i class="fa-solid fa-comments"></i> Message Center</div>
+      </nav>
+
+      <div class="user-widget">
+        <div class="user-avatar-small"><i class="fa-solid fa-user"></i></div>
+        <div class="user-info-text">
+          <div class="user-name-small" id="mini-who">...</div>
+          <div class="user-label-small">Secure Connection</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="glass-panel">
+      
+      <section id="view-ledger">
+        <div class="toprow">
+          <div><h2 class="title">Account Balance</h2><p class="subtitle">Current standing.</p></div>
+          <div class="row" id="admin-ledger-actions" style="display:none;">
+             <button class="btn-elite" onclick="Ark.openCompose('transaction')">Manage Funds</button>
+          </div>
+        </div>
+        <div id="accounts-grid" class="accounts-grid"></div>
+      </section>
+
+      <section id="view-bills" style="display:none;">
+        <div class="toprow">
+          <div><h2 class="title">Bill Tracker</h2><p class="subtitle">Manage upcoming and past due payments.</p></div>
+          <button class="btn-elite" onclick="Ark.openCompose('bill')"><i class="fa-solid fa-plus"></i> Add Bill</button>
+        </div>
+        <div id="bills-grid" class="pantry-grid" style="margin-top:20px;"></div>
+      </section>
+
+      <section id="view-messages" style="display:none; height:100%; flex-direction:column;">
+        <div class="toprow">
+          <div><h2 class="title">Comm-Link</h2><p class="subtitle">Direct line to Administration.</p></div>
+        </div>
+        
+        <div id="chat-box" class="chat-container">
+            </div>
+        
+        <div class="chat-input-area">
+            <input id="msg-input" class="input" placeholder="Type a message..." />
+            <button class="btn-elite" onclick="Ark.sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
   <div id="modal" class="modal" onclick="if(event.target.id === 'modal') Ark.closeCompose()">
     <div class="sheet">
-      <div class="sheethead">
-        <h4 id="modal-title">Compose</h4>
-        <button class="btn-ghost btn-mini" onclick="Ark.closeCompose()"><i class="fa-solid fa-xmark"></i></button>
-      </div>
+      <div class="sheethead"><h4>Compose</h4></div>
       <div class="sheetbody">
         
-        <div id="mode-account" class="mode-section" style="display:none;">
-            <div class="label">Owner Email</div>
-            <input id="a-email" class="input" placeholder="user@email.com (Leave empty for yourself)" />
-            <div style="font-size:11px; color:var(--muted); margin-bottom:10px;">* User must already be signed up in Supabase Auth.</div>
-            
-            <div class="label">Account Details</div>
-            <input id="a-name" class="input" placeholder="Account Name (e.g. Savings)" />
-            <select id="a-cat" class="select">
-                <option value="Personal">Personal</option>
-                <option value="Business">Business</option>
-                <option value="Loan">Loan</option>
-            </select>
-            <button class="btn-elite" style="margin-top:15px;" onclick="Ark.saveAccount()">Create Account</button>
+        <div id="mode-bill" style="display:none;">
+           <div class="label">Bill Type</div>
+           <select id="b-type" class="select">
+             <option value="Utility">Utility (Gas/Electric)</option>
+             <option value="Car">Car / Transport</option>
+             <option value="Rent">Rent / Mortgage</option>
+             <option value="Personal">Personal Loan</option>
+             <option value="Other">Other</option>
+           </select>
+           <div class="label">Details</div>
+           <input id="b-name" class="input" placeholder="Name (e.g. PG&E)" />
+           <input id="b-amt" class="input" type="number" placeholder="Amount Due" />
+           <div class="label">Due Date</div>
+           <input id="b-date" class="input" type="date" />
+           <button class="btn-elite" style="margin-top:15px;" onclick="Ark.saveBill()">Save Bill</button>
         </div>
 
-        <div id="mode-transaction" class="mode-section" style="display:none;">
-            <div class="label">Target Account</div>
-            <select id="t-acc" class="select"></select>
-            <div class="label">Details</div>
-            <input id="t-desc" class="input" placeholder="Description" />
-            <input id="t-amt" class="input" type="number" step="0.01" placeholder="Amount (Negative for charge, Positive for credit)" />
-            <button class="btn-elite" style="margin-top:15px;" onclick="Ark.saveTransaction()">Post Transaction</button>
-        </div>
-
-        <div id="mode-transfer" class="mode-section" style="display:none;">
-            <div class="label">From</div>
-            <select id="x-from" class="select"></select>
-            <div class="label">To</div>
-            <select id="x-to" class="select"></select>
-            <div class="label">Amount & Memo</div>
-            <input id="x-amt" class="input" type="number" step="0.01" placeholder="0.00" />
-            <input id="x-desc" class="input" placeholder="Note" />
-            <button class="btn-elite" style="margin-top:15px;" onclick="Ark.saveTransfer()">Execute</button>
+        <div id="mode-transaction" style="display:none;">
+           <div class="label">Target Account</div>
+           <select id="t-acc" class="select"></select>
+           <div class="label">Amount (Negative to charge, Positive to fund)</div>
+           <input id="t-amt" class="input" type="number" />
+           <input id="t-desc" class="input" placeholder="Description" />
+           <button class="btn-elite" style="margin-top:15px;" onclick="Ark.saveTransaction()">Process</button>
         </div>
 
       </div>
@@ -213,11 +233,21 @@
   </div>
 
   <script src="app.js"></script>
-  
-  <div style="margin-top:auto; padding:0 10px 10px;">
-    <a href="admin.html" class="btn-ghost" style="width:100%; justify-content:center; color: #ff4757; border-color: rgba(255,71,87,0.3);">
-      <i class="fa-solid fa-lock"></i> Admin Panel
-    </a>
+</body>
+</html>
+        <div id="mode-transaction" style="display:none;">
+           <div class="label">Target Account</div>
+           <select id="t-acc" class="select"></select>
+           <div class="label">Amount (Negative to charge, Positive to fund)</div>
+           <input id="t-amt" class="input" type="number" />
+           <input id="t-desc" class="input" placeholder="Description" />
+           <button class="btn-elite" style="margin-top:15px;" onclick="Ark.saveTransaction()">Process</button>
+        </div>
+
+      </div>
+    </div>
   </div>
+
+  <script src="app.js"></script>
 </body>
 </html>
