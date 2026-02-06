@@ -198,6 +198,10 @@ main.glass-panel { padding: 26px; overflow: auto; min-width: 0; position:relativ
 .stock-bar { height: 6px; background: rgba(255,255,255,0.10); border-radius: 3px; margin-top: 10px; overflow: hidden; }
 .stock-fill { height: 100%; background: var(--accent-emerald); transition: 0.5s; }
 .stock-low { background: var(--accent-ruby) !important; }
+.tag { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); }
+.dot { height: 6px; width: 6px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+.dot.posted { background: var(--accent-emerald); box-shadow: 0 0 5px var(--accent-emerald); }
+.dot.pending { background: var(--accent-ice); }
 
 /* --- Login & Modal --- */
 .gate { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; padding: 18px; background: radial-gradient(circle, rgba(20,25,35,0.95) 0%, rgba(5,7,10,0.98) 100%); z-index: 9999; }
@@ -232,66 +236,47 @@ main.glass-panel { padding: 26px; overflow: auto; min-width: 0; position:relativ
   main.glass-panel { overflow: visible; }
   .enterprise-table { min-width: 720px; }
   .grid-cards { grid-template-columns: 1fr; }
+  .god-layout { grid-template-columns: 1fr; height: auto; }
 }
-/* --- ADMIN PANEL STYLES --- */
+
+/* --- ADMIN PANEL THEME & GOD MODE --- */
 .admin-theme {
-  --accent-gold: #ff4757; /* Admin uses Red/Crimson accent */
+  --accent-gold: #ff4757; 
   --accent-emerald: #ff6b81;
 }
 
-.data-grid {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.data-grid th {
-  text-align: left;
-  padding: 12px;
-  background: rgba(255,255,255,0.05);
-  color: var(--muted);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-.data-grid td {
-  padding: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  color: rgba(255,255,255,0.8);
-  font-family: var(--mono);
-}
-.data-grid tr:hover {
-  background: rgba(255,255,255,0.02);
-}
-.action-btn {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.2);
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 10px;
-  text-transform: uppercase;
-}
-.action-btn:hover {
-  background: #fff;
-  color: #000;
-}
+.data-grid { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-grid th { text-align: left; padding: 12px; background: rgba(255,255,255,0.05); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.data-grid td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); font-family: var(--mono); }
+.data-grid tr:hover { background: rgba(255,255,255,0.02); }
 
-/* Edit Form inside Modal */
-.edit-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
+.action-btn { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 10px; text-transform: uppercase; }
+.action-btn:hover { background: #fff; color: #000; }
+
+.edit-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* GOD MODE SPECIALS */
+.god-layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px; height: 100vh; padding: 20px; }
+.user-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 5px; flex: 1; }
+.user-card { 
+  padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.03); 
+  border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: 0.2s;
+  display: flex; flex-direction: column; gap: 4px;
 }
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.user-card:hover, .user-card.active { background: rgba(255,255,255,0.08); border-color: var(--accent-gold); }
+.user-email { font-size: 13px; font-weight: 700; color: #fff; word-break: break-all; }
+.user-id { font-size: 10px; font-family: var(--mono); color: var(--muted); }
+
+/* CHAT BUBBLES */
+.chat-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 10px; }
+.chat-input-area { display: flex; gap: 10px; }
+.msg-row { display: flex; width: 100%; }
+.msg-me { justify-content: flex-end; } 
+.msg-them { justify-content: flex-start; } 
+.msg-bubble { 
+  max-width: 70%; padding: 8px 12px; border-radius: 12px; font-size: 13px; 
+  background: rgba(255,255,255,0.1); color: #fff; line-height: 1.4;
 }
-.field-label {
-  font-size: 11px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
+.msg-me .msg-bubble { background: var(--accent-gold); color: #000; font-weight: 700; }
