@@ -1,5 +1,5 @@
 /**********************************************************
- * ARK VORD 8.0 Full (Fixed & Secure)
+ * ARK VORD 8.0 Full (Fixed & Verified)
  **********************************************************/
 
 const SUPABASE_URL = "https://cumebdvojadpxaxdmabb.supabase.co";
@@ -8,7 +8,7 @@ let sb;
 
 try {
    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-   console.log("Supabase initialized");
+   console.log("Supabase initialized successfully.");
 } catch(e) { 
    console.error("Supabase init failed:", e); 
 }
@@ -18,11 +18,9 @@ const fmt = (n) => {
   return v.toLocaleString(undefined, { style: "currency", currency: "USD" });
 };
 
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-
 const Ark = {
   user: null,
-  role: "Viewer", // Default to safe role
+  role: "Viewer", 
   activeTab: "ledger",
   accounts: [],
   activeAccountId: null,
@@ -32,7 +30,7 @@ const Ark = {
   subscription: null,
   composeMode: null,
 
-  // --- SESSION MANAGEMENT ---
+  // --- 1. SESSION ---
   async checkSession(showErrors = false) {
     try {
       const { data, error } = await sb.auth.getSession();
@@ -50,7 +48,6 @@ const Ark = {
   },
 
   async login() {
-    console.log("Login clicked..."); 
     this.hideLoginError();
     const email = (document.getElementById("login-email").value || "").trim();
     const pass = document.getElementById("login-pass").value || "";
@@ -59,10 +56,7 @@ const Ark = {
     
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
     
-    if (error) {
-        console.error("Login failed:", error);
-        return this.showLoginError(error.message || "Sign-in failed.");
-    }
+    if (error) return this.showLoginError(error.message || "Sign-in failed.");
     
     this.user = data.user;
     await this.initApp();
@@ -70,16 +64,14 @@ const Ark = {
 
   async logout() {
     await sb.auth.signOut();
-    window.location.reload(); // Hard refresh to clear state
+    window.location.reload();
   },
 
-  // --- APP INITIALIZATION ---
+  // --- 2. INIT ---
   async initApp() {
-    console.log("Initializing App...");
     document.getElementById("gate").style.display = "none";
     document.getElementById("app").style.display = "grid";
 
-    // Safe UI update helper
     const setText = (id, text) => {
       const el = document.getElementById(id);
       if(el) el.textContent = text;
@@ -94,10 +86,10 @@ const Ark = {
     setText("prof-uid", uid);
     setText("prof-date", created);
     
-    const clientElem = document.getElementById("ui-clientid");
-    if(clientElem) clientElem.textContent = uid.slice(0, 12);
+    if(document.getElementById("ui-clientid")) {
+        document.getElementById("ui-clientid").textContent = uid.slice(0, 12);
+    }
 
-    // Load Role FIRST to determine permissions
     await this.loadRole();
     await this.loadAccounts();
 
@@ -110,42 +102,37 @@ const Ark = {
     await this.refreshAll();
   },
 
-  // --- ROLE & PERMISSIONS ---
+  // --- 3. ROLES ---
   async loadRole() {
-    // 1. Check Profile for Admin status
-    const { data: profile, error } = await sb.from('profiles').select('is_admin').eq('id', this.user.id).maybeSingle();
+    // Check if user is admin
+    const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', this.user.id).maybeSingle();
     
     const isAdmin = profile?.is_admin === true;
     this.role = isAdmin ? "Administrator" : "Viewer";
-    console.log("User Role:", this.role);
 
-    // 2. Update Badge
+    // Update Badge
     const badge = document.getElementById("role-display");
     if(badge) {
       const color = isAdmin ? "var(--accent-gold)" : "var(--accent-ice)";
       const icon = isAdmin ? "fa-shield-halved" : "fa-eye";
-      badge.innerHTML = `<i class="fa-solid ${icon}"></i><span>${this.escape(this.role)}</span>`;
+      badge.innerHTML = `<i class="fa-solid ${icon}"></i><span>${String(this.role)}</span>`;
       badge.style.background = color;
     }
 
-    // 3. Hide Admin Buttons if not Admin
+    // Hide Buttons for Non-Admins
     if (!isAdmin) {
-      // Hide specific buttons by class
       document.querySelectorAll(".btn-elite").forEach(el => el.style.display = 'none');
-      
-      // Specifically hide the "Admin Panel" link if it exists
       const adminLink = document.querySelector('a[href="admin.html"]');
       if(adminLink) adminLink.style.display = 'none';
     }
   },
 
-  // --- DATA LOADING ---
+  // --- 4. DATA ---
   async loadAccounts() {
     const { data, error } = await sb.from("accounts").select("*").order("created_at", { ascending: true });
     
     if (error) { 
         console.error("Error loading accounts:", error); 
-        // If error is 403 (Forbidden), just show empty array
         this.accounts = [];
         return; 
     }
@@ -155,7 +142,7 @@ const Ark = {
       const accNum = `**** ${numSuffix}`;
       
       let subType = a.category || "Standard";
-      // Visual Flair: Show if shared
+      // Visual Flair for Shared Accounts
       if (this.user && a.user_id !== this.user.id) {
         subType = "Shared / Loan View";
       }
@@ -170,8 +157,7 @@ const Ark = {
   },
 
   async createDefaultAccountsIfNone() {
-    // Only admins/owners can create defaults. If viewer, skip.
-    if (this.role !== "Administrator") return;
+    if (this.role !== "Administrator") return; // Viewers can't create
     if (this.accounts.length) return;
     
     const payload = [
@@ -182,7 +168,7 @@ const Ark = {
   },
 
   paintAccountPickers() {
-    const mk = (a) => `<option value="${a.id}">${this.escape(`${a.name} • ${a.displaySub}`)}</option>`;
+    const mk = (a) => `<option value="${a.id}">${String(a.name).replace(/[&<>"']/g, '')} • ${a.displaySub}</option>`;
     const from = document.getElementById("x-from");
     const to = document.getElementById("x-to");
     if(from) from.innerHTML = this.accounts.map(mk).join("");
@@ -211,10 +197,8 @@ const Ark = {
   async calculateAllBalances() {
     if(!this.user?.id) return;
     
-    // Fetch transactions viewable by this user
     const { data, error } = await sb.from("transactions").select("account_id, amount, status");
-    
-    if(error) { console.error("Balance Calc Error:", error); return; }
+    if(error) { console.error("Balance Error:", error); return; }
     
     this.accounts.forEach(a => a.balance = 0);
     
@@ -245,8 +229,7 @@ const Ark = {
     
     if(!this.accounts.length) {
         grid.innerHTML = `<div class="muted" style="grid-column:1/-1; padding:20px; text-align:center;">
-            No accounts found.<br>
-            ${this.role === 'Administrator' ? 'Go to Admin Panel to create one.' : 'Contact the admin to assign an account to you.'}
+            No accounts found.
         </div>`;
         return;
     }
@@ -255,8 +238,8 @@ const Ark = {
       grid.innerHTML += `
         <div class="acc-box" onclick="Ark.openAccountDetails('${acc.id}')">
           <div class="acc-icon"><i class="fa-solid fa-wallet"></i></div>
-          <div class="acc-box-name">${this.escape(acc.name)}</div>
-          <div class="acc-box-meta">${acc.displayNum} • ${this.escape(acc.displaySub)}</div>
+          <div class="acc-box-name">${String(acc.name)}</div>
+          <div class="acc-box-meta">${acc.displayNum} • ${String(acc.displaySub)}</div>
           <div class="acc-box-action">Open Details</div>
         </div>
       `;
@@ -284,9 +267,7 @@ const Ark = {
       else if(status === "PENDING" && amt < 0) { available += amt; pendingHold += Math.abs(amt); }
     });
     
-    // Fake Credit limit for demo
-    const creditLimit = 5000; 
-    const creditAvail = creditLimit - pendingHold;
+    const creditAvail = 5000 - pendingHold; // Mock limit
 
     const setText = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
     setText("dtl-avail", fmt(available));
@@ -302,7 +283,7 @@ const Ark = {
           txs.forEach(t => {
             const ref = (t.id || "").toString().slice(0, 8).toUpperCase();
             const date = t.created_at ? new Date(t.created_at).toLocaleDateString() : "—";
-            const desc = this.escape(t.description || "—");
+            const desc = t.description || "—";
             const status = (t.status || "POSTED").toUpperCase();
             const dot = status === "PENDING" ? "pending" : "posted";
             const amt = Number(t.amount || 0);
@@ -311,7 +292,7 @@ const Ark = {
               <tr>
                 <td>${ref}</td>
                 <td>${date}</td>
-                <td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:320px;"><strong>${desc}</strong></td>
+                <td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:320px;"><strong>${String(desc)}</strong></td>
                 <td><span class="tag"><span class="dot ${dot}"></span>${status}</span></td>
                 <td class="${cls}">${fmt(amt)}</td>
               </tr>`;
@@ -328,7 +309,7 @@ const Ark = {
     }
   },
 
-  // --- Sub-modules ---
+  // --- SUB-MODULES ---
   async refreshPantry() {
     if (!this.activeAccountId) return;
     const { data } = await sb.from("pantry_items").select("*").eq("account_id", this.activeAccountId).order("created_at", { ascending: false });
@@ -349,151 +330,25 @@ const Ark = {
     const wrap = document.getElementById("pantry-list"); if(!wrap) return; wrap.innerHTML = "";
     if (!this.pantry.length) { wrap.innerHTML = `<div class="inventory-card"><div class="muted" style="font-size:12px;">No items.</div></div>`; return; }
     for (const it of this.pantry) {
-      const name = this.escape(it.name || "—");
-      const unit = this.escape(it.unit || "");
+      const name = String(it.name || "—");
+      const unit = String(it.unit || "");
       const qty = Number(it.qty ?? 0); const par = Number(it.par ?? 0);
-      const pct = (par > 0) ? clamp((qty / par) * 100, 0, 120) : 100;
+      const pct = (par > 0) ? Math.min((qty / par) * 100, 100) : 100;
       const low = (par > 0 && qty < par);
-      wrap.innerHTML += `<div class="inventory-card"><div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;"><div style="min-width:0;"><div style="font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</div><div class="muted" style="font-size:12px; margin-top:6px;">${this.escape(String(qty))}${unit ? " " + unit : ""}${par ? ` • par ${this.escape(String(par))}` : ""}</div></div>
-      ${this.role === 'Administrator' ? `<button class="btn-ghost btn-mini" onclick="Ark.deletePantry('${it.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
-      </div><div class="stock-bar"><div class="stock-fill ${low ? "stock-low" : ""}" style="width:${pct}%;"></div></div><div class="muted" style="font-size:12px; margin-top:10px;">${low ? `<span style="color:var(--accent-ruby); font-weight:900;">Low stock</span>` : `<span style="color:var(--accent-emerald); font-weight:900;">OK</span>`}</div></div>`;
+      wrap.innerHTML += `<div class="inventory-card">
+        <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+          <div style="min-width:0;">
+            <div style="font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</div>
+            <div class="muted" style="font-size:12px; margin-top:6px;">${qty}${unit ? " " + unit : ""}${par ? ` • par ${par}` : ""}</div>
+          </div>
+          ${this.role === 'Administrator' ? `<button class="btn-ghost btn-mini" onclick="Ark.deletePantry('${it.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+        </div>
+        <div class="stock-bar"><div class="stock-fill ${low ? "stock-low" : ""}" style="width:${pct}%;"></div></div>
+        <div class="muted" style="font-size:12px; margin-top:10px;">${low ? `<span style="color:var(--accent-ruby); font-weight:900;">Low stock</span>` : `<span style="color:var(--accent-emerald); font-weight:900;">OK</span>`}</div>
+      </div>`;
     }
   },
+
   renderInvoices() {
     const body = document.getElementById("inv-body"); if(!body) return; body.innerHTML = "";
     if (!this.invoices.length) { body.innerHTML = `<tr><td colspan="5" class="muted" style="padding:16px 12px;">No invoices.</td></tr>`; return; }
-    for (const inv of this.invoices) {
-      const num = this.escape(inv.number || (inv.id || "").slice(0, 8).toUpperCase());
-      const date = inv.created_at ? new Date(inv.created_at).toLocaleDateString() : "—";
-      const client = this.escape(inv.client || "—"); const status = String(inv.status || "DRAFT").toUpperCase();
-      const total = Number(inv.total ?? 0); const dot = (status === "PAID") ? "posted" : (status === "SENT") ? "pending" : "";
-      const moneyCls = total >= 0 ? "money-pos" : "money-neg";
-      body.innerHTML += `<tr><td>${num}</td><td>${date}</td><td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:360px;"><strong>${client}</strong></td><td><span class="tag"><span class="dot ${dot}"></span>${status}</span></td><td class="${moneyCls}">${fmt(total)}</td></tr>`;
-    }
-  },
-  renderSubscriptions() {
-    const plan = document.getElementById("sub-plan"); const status = document.getElementById("sub-status"); if(!plan || !status) return;
-    if (!this.subscription) { plan.textContent = "—"; status.textContent = "—"; return; }
-    plan.textContent = this.subscription.plan || "—"; status.textContent = this.subscription.status || "—";
-  },
-
-  // --- COMPOSER & WRITES (Protected) ---
-  openCompose(mode) {
-    if(this.role !== 'Administrator') return alert("Access Denied: View Only.");
-    
-    this.clearModalError();
-    document.querySelectorAll(".input").forEach(i => i.value = "");
-    const ts = document.getElementById("t-status"); if (ts) ts.value = "POSTED";
-    const is = document.getElementById("i-status"); if (is) is.value = "DRAFT";
-    const seg = document.getElementById("seg-ledger");
-    if(seg) seg.style.display = (mode === "transaction" || mode === "transfer") ? "flex" : "none";
-    this.paintAccountPickers();
-    this.switchComposeMode(mode);
-    const modal = document.getElementById("modal");
-    if(modal) modal.style.display = "flex";
-  },
-  
-  closeCompose() { 
-    const modal = document.getElementById("modal");
-    if(modal) modal.style.display = "none"; 
-  },
-  
-  modalBackdrop(e) { if (e.target && e.target.id === "modal") this.closeCompose(); },
-  
-  switchComposeMode(mode) {
-    this.composeMode = mode;
-    const segT = document.getElementById("seg-transaction"); const segX = document.getElementById("seg-transfer");
-    if (segT && segX) { if (mode === "transfer") { segT.classList.remove("active"); segX.classList.add("active"); } else if (mode === "transaction") { segX.classList.remove("active"); segT.classList.add("active"); } }
-    ["mode-transaction", "mode-transfer", "mode-pantry", "mode-invoice"].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = "none"; });
-    const show = document.getElementById("mode-" + mode); if (show) show.style.display = "block";
-    const t = document.getElementById("modal-title"); const s = document.getElementById("modal-sub");
-    if(!t || !s) return;
-    if(mode === "transaction") { t.textContent = "New Transaction"; s.textContent = "Deposit or withdrawal."; }
-    else if(mode === "transfer") { t.textContent = "Transfer Funds"; s.textContent = "Move funds."; }
-    else if(mode === "pantry") { t.textContent = "Inventory Item"; s.textContent = "Track stock."; }
-    else if(mode === "invoice") { t.textContent = "Create Invoice"; s.textContent = "Issue bill."; }
-  },
-
-  async saveTransaction() {
-    this.clearModalError();
-    const desc = (document.getElementById("t-desc").value || "").trim();
-    const amt = Number(document.getElementById("t-amt").value);
-    const status = document.getElementById("t-status").value;
-    if (!this.activeAccountId) return this.modalError("Select an account first.");
-    if (!desc) return this.modalError("Description required.");
-    if (!Number.isFinite(amt) || amt === 0) return this.modalError("Invalid amount.");
-    const payload = { user_id: this.user.id, account_id: this.activeAccountId, description: desc, amount: amt, status };
-    const { error } = await sb.from("transactions").insert([payload]);
-    if (error) return this.modalError(error.message);
-    this.closeCompose();
-    this.openAccountDetails(this.activeAccountId); this.refreshAll();
-  },
-  async saveTransfer() {
-    this.clearModalError();
-    const fromId = document.getElementById("x-from").value;
-    const toId = document.getElementById("x-to").value;
-    const amt = Number(document.getElementById("x-amt").value);
-    const memo = (document.getElementById("x-desc").value || "").trim();
-    if (!fromId || !toId) return this.modalError("Select accounts.");
-    if (fromId === toId) return this.modalError("Different accounts required.");
-    if (!Number.isFinite(amt) || amt <= 0) return this.modalError("Positive amount required.");
-    const label = memo ? memo : "Transfer";
-    const payload = [ { user_id: this.user.id, account_id: fromId, amount: -amt, description: `${label} (out)`, status: "POSTED" }, { user_id: this.user.id, account_id: toId, amount: amt, description: `${label} (in)`, status: "POSTED" } ];
-    const { error } = await sb.from("transactions").insert(payload);
-    if (error) return this.modalError(error.message);
-    this.closeCompose(); this.refreshAll();
-  },
-  async savePantryItem() {
-    this.clearModalError();
-    const name = (document.getElementById("p-name").value || "").trim();
-    const unit = (document.getElementById("p-unit").value || "").trim();
-    const qty = Number(document.getElementById("p-qty").value);
-    const par = Number(document.getElementById("p-par").value);
-    if (!this.activeAccountId) return this.modalError("Select account.");
-    if (!name) return this.modalError("Name required.");
-    if (!Number.isFinite(qty)) return this.modalError("Invalid qty.");
-    const payload = { user_id: this.user.id, account_id: this.activeAccountId, name, unit: unit || null, qty, par: par || null };
-    const { error } = await sb.from("pantry_items").insert([payload]);
-    if (error) return this.modalError(error.message);
-    this.closeCompose(); this.refreshPantry(); this.renderPantry();
-  },
-  async deletePantry(id) { await sb.from("pantry_items").delete().eq("id", id); this.refreshPantry(); this.renderPantry(); },
-  async saveInvoice() {
-    this.clearModalError();
-    const number = (document.getElementById("i-number").value || "").trim();
-    const client = (document.getElementById("i-client").value || "").trim();
-    const total = Number(document.getElementById("i-total").value);
-    if (!this.activeAccountId) return this.modalError("Select account.");
-    if (!client) return this.modalError("Client required.");
-    if (!Number.isFinite(total)) return this.modalError("Invalid total.");
-    const payload = { user_id: this.user.id, account_id: this.activeAccountId, number: number || null, client, total, status: document.getElementById("i-status").value };
-    const { error } = await sb.from("invoices").insert([payload]);
-    if (error) return this.modalError(error.message);
-    this.closeCompose(); this.refreshInvoices(); this.renderInvoices();
-  },
-  exportActive() {
-    if (this.activeTab === "pantry") return this.exportCSV(this.pantry, ["name","qty"], "pantry");
-    if (this.activeTab === "invoices") return this.exportCSV(this.invoices, ["number","client","total"], "invoices");
-    this.exportCSV(this.accounts, ["name","type"], "accounts");
-  },
-  exportCSV(data, keys, fname) {
-    const header = keys.join(",");
-    const rows = data.map(d => keys.map(k => `"${String(d[k] || "").replaceAll('"', '""')}"`).join(",")).join("\n");
-    const blob = new Blob([header + "\n" + rows], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = `ark-${fname}.csv`;
-    document.body.appendChild(a); a.click(); a.remove();
-  },
-  showLoginError(msg) { const el = document.getElementById("login-error"); if(el) { el.style.display = "block"; el.textContent = msg; } },
-  hideLoginError() { const el = document.getElementById("login-error"); if(el) el.style.display = "none"; },
-  modalError(msg) { const el = document.getElementById("modal-error"); if(el) { el.style.display = "block"; el.textContent = msg; } },
-  clearModalError() { const el = document.getElementById("modal-error"); if(el) el.style.display = "none"; },
-  escape(s) { return String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m])); }
-};
-
-Ark.checkSession(false);
-window.addEventListener("keydown", (e) => {
-  if (document.getElementById("gate").style.display !== "none") return;
-  if (e.key === "Escape") { Ark.closeCompose(); const d = document.getElementById("account-detail-modal"); if(d) d.style.display="none"; }
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "n") { e.preventDefault(); Ark.openCompose("transaction"); }
-});
