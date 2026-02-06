@@ -11,13 +11,32 @@ const Client = {
     if (data?.session) {
       this.user = data.session.user;
       
-      // Check if Admin (Redirect if so)
+      // 1. CHECK ADMIN STATUS
       const { data: prof } = await sb.from('profiles').select('is_admin').eq('id', this.user.id).single();
+      
+      // 2. IF ADMIN: INJECT "GOD MODE" BUTTON
       if (prof?.is_admin) {
-        window.location.href = 'admin.html'; // <<< AUTO REDIRECT ADMINS
-        return;
+        console.log("Admin detected. Adding God Mode button.");
+        
+        const sidebar = document.querySelector('aside');
+        const logoutBtnContainer = sidebar.lastElementChild; // The div containing logout
+        
+        const adminBtn = document.createElement('button');
+        adminBtn.className = 'btn-elite'; // Gold styling
+        adminBtn.style.marginTop = 'auto';
+        adminBtn.style.marginBottom = '10px';
+        adminBtn.style.width = '100%';
+        adminBtn.style.justifyContent = 'center';
+        adminBtn.innerHTML = '<i class="fa-solid fa-lock"></i> GOD MODE';
+        
+        // Click to go to admin.html
+        adminBtn.onclick = () => window.location.href = 'admin.html';
+        
+        // Insert it right above the Logout button
+        sidebar.insertBefore(adminBtn, logoutBtnContainer);
       }
 
+      // 3. LOAD THE APP NORMALLY
       document.getElementById('gate').style.display = 'none';
       document.getElementById('app').style.display = 'grid';
       this.tab('ledger');
@@ -72,6 +91,12 @@ const Client = {
   async loadBills() {
     const { data: bills } = await sb.from('bills').select('*').order('due_date');
     const grid = document.getElementById('grid-bills');
+    
+    if(!bills || bills.length === 0) {
+        grid.innerHTML = '<div class="muted">No bills found.</div>';
+        return;
+    }
+
     grid.innerHTML = bills.map(b => {
       const isLate = b.status !== 'PAID' && new Date(b.due_date) < new Date();
       return `
