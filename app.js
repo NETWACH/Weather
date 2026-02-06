@@ -1,5 +1,5 @@
 /**********************************************************
- * ARK VORD 8.0 Full (Fixed)
+ * ARK VORD 8.0 Full (Fixed Syntax)
  **********************************************************/
 
 const SUPABASE_URL = "https://cumebdvojadpxaxdmabb.supabase.co";
@@ -69,7 +69,7 @@ const Ark = {
     document.getElementById("gate").style.display = "none";
     document.getElementById("app").style.display = "grid";
 
-    // --- SAFE UPDATE OF UI ELEMENTS ---
+    // Safe UI update
     const setText = (id, text) => {
       const el = document.getElementById(id);
       if(el) el.textContent = text;
@@ -104,26 +104,37 @@ const Ark = {
   },
 
   async loadAccounts() {
+    // Select accounts where I am owner OR shared with my email
     const { data, error } = await sb.from("accounts").select("*").order("created_at", { ascending: true });
+    
     if (error) { console.error("Error loading accounts:", error); return; }
     
     this.accounts = (data || []).map(a => {
       const numSuffix = a.id.replace(/\D/g, '').slice(0,4).padEnd(4, '0'); 
       const accNum = `**** ${numSuffix}`;
-      let subType = a.category || "Standard Plan";
+      
+      let subType = a.category || "Standard";
+      // If I am NOT the owner, this is a shared/loan account
       if (this.user && a.user_id !== this.user.id) {
         subType = "Shared / Loan View";
       } else {
         if (a.category === "Business") subType = "Enterprise Checking";
         if (a.category === "Personal") subType = "Personal Checking";
       }
-      return { ...a, balance: 0, displayNum: accNum, displaySub: subType };
+
+      return { 
+        ...a, 
+        balance: 0, 
+        displayNum: accNum, 
+        displaySub: subType 
+      };
     });
   },
 
   async createDefaultAccountsIfNone() {
     if (this.accounts.length) return;
     if (!this.user?.id) return;
+    // Only create defaults for the owner
     const payload = [
       { user_id: this.user.id, name: "Primary Checking", category: "Personal" },
       { user_id: this.user.id, name: "Business Ops", category: "Business" }
@@ -144,6 +155,7 @@ const Ark = {
     document.querySelectorAll('main > section').forEach(s => s.style.display = 'none');
     const view = document.getElementById('view-' + tabId);
     if (view) view.style.display = 'block';
+
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     if (el) el.classList.add('active');
   },
@@ -159,8 +171,11 @@ const Ark = {
 
   async calculateAllBalances() {
     if(!this.user?.id) return;
+    // RLS will ensure we only get transactions we are allowed to see
     const { data, error } = await sb.from("transactions").select("account_id, amount, status");
+    
     if(error) { console.error("Balance Calc Error:", error); return; }
+    
     this.accounts.forEach(a => a.balance = 0);
     data.forEach(t => {
       const amt = Number(t.amount);
@@ -186,10 +201,12 @@ const Ark = {
     const grid = document.getElementById("accounts-grid");
     if(!grid) return;
     grid.innerHTML = "";
+    
     if(!this.accounts.length) {
-        grid.innerHTML = `<div class="muted" style="grid-column:1/-1;">No accounts found. Create one?</div>`;
+        grid.innerHTML = `<div class="muted" style="grid-column:1/-1; padding:20px;">No accounts found.</div>`;
         return;
     }
+
     this.accounts.forEach(acc => {
       const displayBal = fmt(acc.balance);
       grid.innerHTML += `
@@ -214,7 +231,7 @@ const Ark = {
     const dtlSub = document.getElementById("dtl-sub");
     if(dtlSub) dtlSub.textContent = `${acc.displayNum} • ${acc.displaySub}`;
     
-    const { data: txs, error } = await sb.from("transactions").select("*").eq("account_id", accountId).order("created_at", { ascending: false });
+    const { data: txs } = await sb.from("transactions").select("*").eq("account_id", accountId).order("created_at", { ascending: false });
 
     let available = 0; let pendingHold = 0;
     (txs || []).forEach(t => {
@@ -266,6 +283,7 @@ const Ark = {
     }
   },
 
+  // Sub-modules
   async refreshPantry() {
     if (!this.activeAccountId) return;
     const { data } = await sb.from("pantry_items").select("*").eq("account_id", this.activeAccountId).order("created_at", { ascending: false });
@@ -312,7 +330,6 @@ const Ark = {
     plan.textContent = this.subscription.plan || "—"; status.textContent = this.subscription.status || "—";
   },
 
-  // --- Composers ---
   openCompose(mode) {
     this.clearModalError();
     document.querySelectorAll(".input").forEach(i => i.value = "");
