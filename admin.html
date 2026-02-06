@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ARK Admin | Data Management</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fraunces:wght@700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="admin-theme">
+
+  <div id="app" class="app-container">
+    <aside class="sidebar glass-panel">
+      <div style="text-align:center; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.10);">
+        <h1 style="font-family:Fraunces; font-size: 22px; color:var(--accent-gold);">
+          ARK ADMIN
+        </h1>
+        <div class="role-badge" style="background:var(--accent-gold); color:white;">Database Mode</div>
+      </div>
+
+      <nav>
+        <div class="label" style="margin-left:15px; margin-bottom:10px;">Select Table</div>
+        <div class="nav-item active" onclick="Admin.loadTable('transactions', this)"><i class="fa-solid fa-list"></i> Transactions</div>
+        <div class="nav-item" onclick="Admin.loadTable('accounts', this)"><i class="fa-solid fa-wallet"></i> Accounts</div>
+        <div class="nav-item" onclick="Admin.loadTable('pantry_items', this)"><i class="fa-solid fa-box"></i> Pantry Items</div>
+        <div class="nav-item" onclick="Admin.loadTable('invoices', this)"><i class="fa-solid fa-file-invoice"></i> Invoices</div>
+      </nav>
+
+      <div style="margin-top:auto;">
+        <a href="index.html" class="btn-ghost" style="width:100%; justify-content:center;">
+          <i class="fa-solid fa-arrow-left"></i> Back to App
+        </a>
+      </div>
+    </aside>
+
+    <main class="glass-panel">
+      <div class="toprow">
+        <div>
+          <h2 class="title" id="table-title">Transactions</h2>
+          <p class="subtitle">Raw data management. <span style="color:var(--accent-gold);">Edit with caution.</span></p>
+        </div>
+        <div class="row">
+          <button class="btn-elite" style="background:var(--accent-gold); color:white;" onclick="Admin.refreshTable()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        </div>
+      </div>
+
+      <div class="tablewrap" style="margin-top:20px;">
+        <table class="data-grid">
+          <thead id="grid-head"></thead>
+          <tbody id="grid-body"></tbody>
+        </table>
+        <div id="loading" class="muted" style="padding:20px; text-align:center;">Loading data...</div>
+      </div>
+    </main>
+  </div>
+
+  <div id="edit-modal" class="modal" onclick="Admin.closeModal(event)">
+    <div class="sheet">
+      <div class="sheethead">
+        <h4>Edit Record</h4>
+        <button class="btn-ghost btn-mini" onclick="Admin.closeModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="sheetbody">
+        <div id="edit-form" class="edit-form-grid"></div>
+        <div id="modal-error" class="err"></div>
+        <div class="row" style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px;">
+          <button class="btn-danger" onclick="Admin.deleteRecord()">Delete Record</button>
+          <div style="flex:1;"></div>
+          <button class="btn-elite" style="background:var(--accent-gold); color:white;" onclick="Admin.saveRecord()">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

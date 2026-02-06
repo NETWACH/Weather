@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ARK Vord 8.0 | Enterprise Command</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fraunces:wght@700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div id="gate" class="gate">
+    <div class="login">
+      <div class="loginhead">
+        <div style="display:flex; gap:12px; align-items:center; min-width:0;">
+          <div class="crest"><i class="fa-solid fa-landmark"></i></div>
+          <div style="min-width:0;">
+            <h3>ARK VORD</h3>
+            <div class="muted" style="font-size:11px; letter-spacing:.18em; text-transform:uppercase; margin-top:4px;">
+              Secure Access • Enterprise Command
+            </div>
+          </div>
+        </div>
+        <span class="tag"><span class="dot posted"></span>Protected</span>
+      </div>
+      <div class="loginbody">
+        <div class="label">Sign in</div>
+        <input class="input" id="login-email" type="email" placeholder="Email address" autocomplete="email" />
+        <input class="input" id="login-pass" type="password" placeholder="Password" autocomplete="current-password" />
+        <div class="row">
+          <button class="btn-elite" onclick="Ark.login()"><i class="fa-solid fa-arrow-right-to-bracket"></i>Enter</button>
+          <button class="btn-ghost" onclick="Ark.checkSession(true)"><i class="fa-solid fa-rotate"></i>Restore</button>
+        </div>
+        <div id="login-error" class="err"></div>
+        <div class="muted" style="font-size:12px; line-height:1.35; margin-top:4px;">
+          Uses Supabase Auth. All access should be enforced by Row Level Security.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" class="app-container" style="display:none;">
+    <aside class="sidebar glass-panel">
+      <div style="text-align:center; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.10);">
+        <h1 style="font-family:Fraunces; font-size: 22px; color:var(--accent-gold);">
+          ARK VORD <span style="font-size:12px;">8.0</span>
+        </h1>
+        <div id="role-display" class="role-badge"><i class="fa-solid fa-shield-halved"></i><span>Authenticated</span></div>
+      </div>
+
+      <nav>
+        <div class="nav-item active" onclick="Ark.switchTab('ledger', this)"><i class="fa-solid fa-vault"></i> Main Ledger</div>
+        <div class="nav-item" onclick="Ark.switchTab('pantry', this)"><i class="fa-solid fa-boxes-stacked"></i> Pantry / Inventory</div>
+        <div class="nav-item" onclick="Ark.switchTab('invoices', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Business Invoices</div>
+        <div class="nav-item" onclick="Ark.switchTab('settings', this)"><i class="fa-solid fa-gears"></i> Subscriptions</div>
+      </nav>
+
+      <div class="user-widget" onclick="Ark.switchTab('profile', null)">
+        <div class="user-avatar-small"><i class="fa-solid fa-user"></i></div>
+        <div class="user-info-text">
+          <div class="user-name-small" id="mini-who">User</div>
+          <div class="user-label-small">Account Info</div>
+        </div>
+        <i class="fa-solid fa-chevron-right" style="font-size:10px; opacity:0.5; margin-left:auto;"></i>
+      </div>
+    </aside>
+
+    <main class="glass-panel">
+      <section id="view-ledger">
+        <div class="toprow">
+          <div>
+            <h2 class="title">My Accounts</h2>
+            <p class="subtitle">Select an account box to view detailed balance and transactions.</p>
+          </div>
+          <div class="row">
+            <button class="btn-ghost" onclick="Ark.openCompose('transfer')"><i class="fa-solid fa-right-left"></i>Transfer</button>
+            <button class="btn-elite" onclick="Ark.openCompose('transaction')"><i class="fa-solid fa-circle-plus"></i>New Entry</button>
+          </div>
+        </div>
+
+        <div id="accounts-grid" class="accounts-grid">
+           <div class="muted" style="grid-column:1/-1; padding:20px;">Loading accounts...</div>
+        </div>
+      </section>
+
+      <section id="view-pantry" style="display:none;">
+        <div class="toprow">
+          <div>
+            <h2 class="title">Pantry Command</h2>
+            <p class="subtitle">Real-time inventory of business and home supplies.</p>
+          </div>
+          <div class="row">
+            <button class="btn-elite" onclick="Ark.openCompose('pantry')"><i class="fa-solid fa-plus"></i>Add Item</button>
+          </div>
+        </div>
+        <div class="pantry-grid" id="pantry-list"></div>
+      </section>
+
+      <section id="view-invoices" style="display:none;">
+        <div class="toprow">
+          <div>
+            <h2 class="title">Business Invoices</h2>
+            <p class="subtitle">Issue, track, and reconcile invoices.</p>
+          </div>
+          <div class="row">
+            <button class="btn-elite" onclick="Ark.openCompose('invoice')"><i class="fa-solid fa-file-circle-plus"></i>New Invoice</button>
+          </div>
+        </div>
+        <div class="tablewrap">
+          <table class="enterprise-table">
+            <thead>
+              <tr><th>Invoice #</th><th>Date</th><th>Client</th><th>Status</th><th>Total</th></tr>
+            </thead>
+            <tbody id="inv-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="view-settings" style="display:none;">
+        <div class="toprow">
+          <div>
+            <h2 class="title">Subscriptions</h2>
+            <p class="subtitle">Plan, billing status, and service entitlements.</p>
+          </div>
+        </div>
+        <div class="grid-cards" style="grid-template-columns: repeat(2, minmax(0,1fr));">
+          <div class="card">
+            <div class="k">Plan</div>
+            <div id="sub-plan" class="v" style="font-size:22px;">—</div>
+            <div class="muted" style="font-size:12px; margin-top:10px;">Pulled from <span class="mono">subscriptions</span>.</div>
+          </div>
+          <div class="card">
+            <div class="k">Status</div>
+            <div id="sub-status" class="v" style="font-size:22px;">—</div>
+            <div class="muted" style="font-size:12px; margin-top:10px;">RLS-controlled.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-profile" style="display:none;">
+        <div class="profile-header">
+          <div class="profile-avatar-large"><i class="fa-solid fa-user"></i></div>
+          <div>
+            <h2 class="title">Account Information</h2>
+            <p class="subtitle">Manage your personal details and security.</p>
+          </div>
+        </div>
+        <div class="profile-grid">
+          <div class="detail-box"><div class="detail-label">Email Address</div><div class="detail-value" id="prof-email">—</div></div>
+          <div class="detail-box"><div class="detail-label">User ID</div><div class="detail-value" id="prof-uid">—</div></div>
+          <div class="detail-box"><div class="detail-label">Account Created</div><div class="detail-value" id="prof-date">—</div></div>
+          <div class="detail-box"><div class="detail-label">Security</div><div class="detail-value"><span class="tag"><span class="dot posted"></span>Encrypted</span></div></div>
+        </div>
+        <div style="margin-top:40px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1);">
+          <div class="row">
+             <button class="btn-ghost" onclick="Ark.refreshAll()"><i class="fa-solid fa-arrows-rotate"></i>Refresh Data</button>
+             <button class="btn-danger" onclick="Ark.logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="account-detail-modal" class="modal" onclick="Ark.closeAccountDetails(event)">
+    <div class="sheet large-sheet">
+      <div class="sheethead">
+        <div>
+          <h4 id="dtl-name">Account Details</h4>
+          <div class="muted" style="font-size:12px;margin-top:4px;" id="dtl-sub">View transactions and balance</div>
+        </div>
+        <button class="btn-ghost btn-mini" onclick="document.getElementById('account-detail-modal').style.display='none'"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <div class="sheetbody">
+        <div class="grid-cards" style="margin-top:0; margin-bottom:20px;">
+           <div class="card">
+             <div class="k">Available Balance</div>
+             <div class="v money-pos" id="dtl-avail">$0.00</div>
+           </div>
+           <div class="card">
+             <div class="k">Available Credit</div>
+             <div class="v ice" id="dtl-credit">$0.00</div>
+             <div class="muted" style="font-size:10px; margin-top:5px;">Pending limit estimation</div>
+           </div>
+           <div class="card">
+             <div class="k">Held / Pending</div>
+             <div class="v neg" id="dtl-pend">$0.00</div>
+           </div>
+        </div>
+
+        <h5 style="margin:0 0 10px; font-family:Fraunces,serif;">Transaction History</h5>
+        <div class="tablewrap" style="flex:1;">
+          <table class="enterprise-table">
+            <thead>
+              <tr><th>Reference</th><th>Date</th><th>Description</th><th>Status</th><th>Amount</th></tr>
+            </thead>
+            <tbody id="dtl-tx-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal" class="modal" onclick="Ark.modalBackdrop(event)">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Composer">
+      <div class="sheethead">
+        <div>
+          <h4 id="modal-title">Compose</h4>
+          <div class="muted" style="font-size:12px;margin-top:4px;" id="modal-sub">—</div>
+        </div>
+        <button class="btn-ghost btn-mini" onclick="Ark.closeCompose()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="sheetbody">
+        <div id="seg-ledger" class="seg" style="display:none;">
+          <button id="seg-transaction" class="active" onclick="Ark.switchComposeMode('transaction')">Transaction</button>
+          <button id="seg-transfer" onclick="Ark.switchComposeMode('transfer')">Transfer</button>
+        </div>
+        <div id="mode-transaction" style="display:none;">
+          <div class="label">Transaction details</div>
+          <input id="t-desc" class="input" type="text" placeholder="Description" />
+          <input id="t-amt" class="input" type="number" step="0.01" placeholder="Amount (Deposit +, Withdrawal -)" />
+          <select id="t-status" class="select"><option value="POSTED">POSTED</option><option value="PENDING">PENDING</option></select>
+          <button class="btn-elite" onclick="Ark.saveTransaction()"><i class="fa-solid fa-check"></i>Post Entry</button>
+        </div>
+        <div id="mode-transfer" style="display:none;">
+          <div class="label">Transfer details</div>
+          <select id="x-from" class="select"></select>
+          <select id="x-to" class="select"></select>
+          <input id="x-amt" class="input" type="number" step="0.01" placeholder="Amount" />
+          <input id="x-desc" class="input" type="text" placeholder="Memo" />
+          <button class="btn-elite" onclick="Ark.saveTransfer()"><i class="fa-solid fa-right-left"></i>Execute</button>
+        </div>
+        <div id="mode-pantry" style="display:none;">
+          <div class="label">Inventory item</div>
+          <input id="p-name" class="input" type="text" placeholder="Item name" />
+          <input id="p-unit" class="input" type="text" placeholder="Unit" />
+          <div class="row">
+            <input id="p-qty" class="input" type="number" step="0.01" placeholder="Current qty" />
+            <input id="p-par" class="input" type="number" step="0.01" placeholder="Reorder below (par)" />
+          </div>
+          <button class="btn-elite" onclick="Ark.savePantryItem()"><i class="fa-solid fa-box"></i>Save Item</button>
+        </div>
+        <div id="mode-invoice" style="display:none;">
+          <div class="label">Invoice</div>
+          <div class="row">
+            <input id="i-number" class="input" type="text" placeholder="Invoice #" />
+            <input id="i-client" class="input" type="text" placeholder="Client name" />
+          </div>
+          <input id="i-desc" class="input" type="text" placeholder="Description" />
+          <div class="row">
+            <input id="i-total" class="input" type="number" step="0.01" placeholder="Total amount" />
+            <select id="i-status" class="select"><option value="DRAFT">DRAFT</option><option value="SENT">SENT</option><option value="PAID">PAID</option><option value="VOID">VOID</option></select>
+          </div>
+          <button class="btn-elite" onclick="Ark.saveInvoice()"><i class="fa-solid fa-file-invoice"></i>Save Invoice</button>
+        </div>
+        <div id="modal-error" class="err"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+<div style="margin-top:auto; padding:0 10px 10px;">
+        <a href="admin.html" class="btn-ghost" style="width:100%; justify-content:center; color: #ff4757; border-color: rgba(255,71,87,0.3);">
+          <i class="fa-solid fa-lock"></i> Admin Panel
+        </a>
+      </div>
