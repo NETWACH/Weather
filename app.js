@@ -1,5 +1,5 @@
 /**********************************************************
- * ARK VORD 8.0 Full (Fixed Syntax)
+ * ARK VORD 8.0 Full (Fixed)
  **********************************************************/
 
 const SUPABASE_URL = "https://cumebdvojadpxaxdmabb.supabase.co";
@@ -69,7 +69,6 @@ const Ark = {
     document.getElementById("gate").style.display = "none";
     document.getElementById("app").style.display = "grid";
 
-    // Safe UI update
     const setText = (id, text) => {
       const el = document.getElementById(id);
       if(el) el.textContent = text;
@@ -104,17 +103,14 @@ const Ark = {
   },
 
   async loadAccounts() {
-    // Select accounts where I am owner OR shared with my email
     const { data, error } = await sb.from("accounts").select("*").order("created_at", { ascending: true });
-    
     if (error) { console.error("Error loading accounts:", error); return; }
     
     this.accounts = (data || []).map(a => {
       const numSuffix = a.id.replace(/\D/g, '').slice(0,4).padEnd(4, '0'); 
       const accNum = `**** ${numSuffix}`;
       
-      let subType = a.category || "Standard";
-      // If I am NOT the owner, this is a shared/loan account
+      let subType = a.category || "Standard Plan";
       if (this.user && a.user_id !== this.user.id) {
         subType = "Shared / Loan View";
       } else {
@@ -134,7 +130,6 @@ const Ark = {
   async createDefaultAccountsIfNone() {
     if (this.accounts.length) return;
     if (!this.user?.id) return;
-    // Only create defaults for the owner
     const payload = [
       { user_id: this.user.id, name: "Primary Checking", category: "Personal" },
       { user_id: this.user.id, name: "Business Ops", category: "Business" }
@@ -171,7 +166,6 @@ const Ark = {
 
   async calculateAllBalances() {
     if(!this.user?.id) return;
-    // RLS will ensure we only get transactions we are allowed to see
     const { data, error } = await sb.from("transactions").select("account_id, amount, status");
     
     if(error) { console.error("Balance Calc Error:", error); return; }
@@ -201,9 +195,8 @@ const Ark = {
     const grid = document.getElementById("accounts-grid");
     if(!grid) return;
     grid.innerHTML = "";
-    
     if(!this.accounts.length) {
-        grid.innerHTML = `<div class="muted" style="grid-column:1/-1; padding:20px;">No accounts found.</div>`;
+        grid.innerHTML = `<div class="muted" style="grid-column:1/-1;">No accounts found. Create one?</div>`;
         return;
     }
 
