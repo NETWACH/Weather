@@ -9,71 +9,77 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { 
-            --glass: rgba(15, 15, 25, 0.7); 
+            --glass: rgba(10, 10, 20, 0.75); 
             --cyan: #00f2ff; 
             --silver: #c0c0c0; 
             --gold: #d4af37; 
         }
         
-        body, html { height: 100vh; margin: 0; background: #000; font-family: 'Montserrat', sans-serif; overflow: hidden; }
+        /* 1. THE REALISTIC BACKGROUND */
+        body, html { 
+            height: 100vh; margin: 0; background: #000; 
+            font-family: 'Montserrat', sans-serif; overflow: hidden; 
+        }
 
-        /* REALISTIC HOT AIR BALLOON BACKGROUND */
-        .background-scene {
-            position: fixed; inset: 0; z-index: -1;
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), 
-                        url('https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?auto=format&fit=crop&w=1920&q=80') no-repeat center center;
+        .background-fixed {
+            position: fixed; inset: 0; z-index: -2;
+            background: url('https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?q=80&w=2070&auto=format&fit=crop') no-repeat center center;
             background-size: cover;
-            filter: blur(12px) brightness(0.7);
-            transform: scale(1.1);
+        }
+
+        /* The Blur Layer */
+        .background-blur {
+            position: fixed; inset: 0; z-index: -1;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
         }
 
         #gate, #portal { 
             height: 100vh; width: 100%; position: absolute; top: 0; left: 0; 
-            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s ease; 
+            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1); 
         }
         
-        #portal { display: none; opacity: 0; transform: scale(1.05); padding: 80px 40px; }
+        #portal { display: none; opacity: 0; padding: 100px 40px; }
 
-        /* SYSTEM WINDOW STYLING */
+        /* 2. THE METALLIC WINDOWS */
         .system-box { 
-            background: var(--glass); backdrop-filter: blur(30px); 
-            border: 1px solid rgba(255,255,255,0.12); border-radius: 15px; 
-            padding: 40px; box-shadow: 0 50px 100px rgba(0,0,0,0.6);
+            background: var(--glass); border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 40px; box-shadow: 0 50px 100px rgba(0,0,0,0.8);
         }
 
         .portal-btn {
-            background: rgba(255,255,255,0.03); padding: 25px; border-radius: 10px;
-            border: 1px solid var(--silver); transition: 0.3s;
+            background: rgba(255,255,255,0.03); padding: 25px; border-radius: 12px;
+            border: 1px solid var(--silver); transition: 0.3s; cursor: pointer;
         }
         .gold-border { border-color: var(--gold) !important; }
-        .portal-btn:hover { background: rgba(0, 242, 255, 0.05); transform: translateY(-3px); border-color: var(--cyan); }
+        .portal-btn:hover { background: rgba(0, 242, 255, 0.08); transform: translateY(-5px); border-color: var(--cyan); }
 
-        .mono { font-family: 'Courier New', monospace; color: var(--cyan); font-weight: bold; }
-        .tiny { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; }
+        .mono { font-family: 'Courier New', monospace; color: var(--cyan); font-weight: 700; }
+        .tiny { font-size: 11px; text-transform: uppercase; letter-spacing: 3px; }
 
-        /* FORM STYLING */
+        /* FORM CONTROLS */
         .form-control { 
-            background: rgba(0,0,0,0.5) !important; 
-            color: white !important; 
-            border: 1px solid rgba(255,255,255,0.1) !important; 
-            padding: 28px !important; 
-            font-size: 14px;
+            background: rgba(0,0,0,0.6) !important; color: #fff !important; 
+            border: 1px solid rgba(255,255,255,0.1) !important; padding: 30px !important; 
+            border-radius: 10px !important;
         }
         
         .btn-boot { 
-            border: 1px solid var(--cyan); color: var(--cyan); 
-            letter-spacing: 5px; transition: 0.4s; padding: 18px; 
-            text-transform: uppercase; font-weight: 800; font-size: 13px;
+            border: 2px solid var(--cyan); color: var(--cyan); 
+            background: transparent; letter-spacing: 6px; padding: 20px; 
+            text-transform: uppercase; font-weight: 900; transition: 0.5s;
         }
-        .btn-boot:hover { background: var(--cyan); color: #000; box-shadow: 0 0 40px rgba(0, 242, 255, 0.5); }
+        .btn-boot:hover { background: var(--cyan); color: #000; box-shadow: 0 0 50px rgba(0, 242, 255, 0.6); }
     </style>
 </head>
 <body>
-    <div class="background-scene"></div>
+    <div class="background-fixed"></div>
+    <div class="background-blur"></div>
 
     <section id="gate" class="d-flex align-items-center justify-content-center">
-        <div class="system-box text-center" style="width: 480px;">
-            <h1 class="mb-5 text-white" style="letter-spacing: 18px; font-weight: 200; font-size: 32px;">ARC VOID</h1>
+        <div class="system-box text-center" style="width: 500px;">
+            <h1 class="mb-5 text-white" style="letter-spacing: 20px; font-weight: 200;">ARC VOID</h1>
             <div class="form-group mb-3"><input type="email" id="email" class="form-control" placeholder="USER_ID"></div>
             <div class="form-group mb-4"><input type="password" id="password" class="form-control" placeholder="PASSKEY"></div>
             <button class="btn btn-block btn-boot" onclick="UI.start()">BOOT SYSTEM</button>
@@ -85,28 +91,22 @@
         <div class="container">
             <div class="d-flex justify-content-between align-items-end mb-5">
                 <div>
-                    <h1 class="mono m-0" style="font-size: 36px; color: white; letter-spacing: -1px;">WELCOME_USER</h1>
-                    <span class="tiny opacity-50 text-white">OS STATUS: ACTIVE // ENCRYPTION: AES-256</span>
+                    <h1 class="mono m-0" style="font-size: 40px; color: #fff;">WELCOME_USER</h1>
+                    <span class="tiny opacity-50 text-white">PORTAL STATUS: ONLINE // ENCRYPTED_CHANNEL</span>
                 </div>
-                <button class="btn btn-sm btn-outline-danger px-4 py-2" style="border-radius:0; font-weight: 700;" onclick="Client.logout()">SHUTDOWN</button>
+                <button class="btn btn-outline-danger px-5 py-2" style="border-radius:0; font-weight: 800;" onclick="Client.logout()">SHUTDOWN</button>
             </div>
 
             <div class="row">
                 <div class="col-lg-7 mb-4">
                     <div class="system-box h-100">
-                        <div class="d-flex justify-content-between mb-4">
-                            <h5 class="mono m-0" style="color:var(--silver);">FINANCIAL_LEDGER</h5>
-                            <i class="fa fa-university opacity-50 text-white"></i>
-                        </div>
+                        <h5 class="mono mb-4 text-white">FINANCIAL_LEDGER</h5>
                         <div id="grid-accounts" class="row"></div>
                     </div>
                 </div>
                 <div class="col-lg-5 mb-4">
                     <div class="system-box h-100">
-                        <div class="d-flex justify-content-between mb-4">
-                            <h5 class="mono m-0" style="color:var(--silver);">PANTRY_MANIFEST</h5>
-                            <i class="fa fa-archive opacity-50 text-white"></i>
-                        </div>
+                        <h5 class="mono mb-4 text-white">PANTRY_MANIFEST</h5>
                         <div id="grid-bills" class="mono"></div>
                     </div>
                 </div>
@@ -120,7 +120,7 @@
         const UI = {
             start: async function() {
                 const btn = document.querySelector('#gate button');
-                btn.innerText = "VERIFYING IDENTITY..."; btn.disabled = true;
+                btn.innerText = "LINKING IDENTITY..."; btn.disabled = true;
                 const success = await Client.login();
                 if (success) { Client.showDashboard(); } 
                 else { btn.innerText = "BOOT SYSTEM"; btn.disabled = false; }
