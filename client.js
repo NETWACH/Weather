@@ -21,22 +21,16 @@ const Client = {
     async login() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
-
         try {
             const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
             if (error) {
                 const errDiv = document.getElementById('login-err');
-                if (errDiv) {
-                    errDiv.style.display = 'block';
-                    errDiv.textContent = error.message;
-                }
+                if (errDiv) { errDiv.style.display = 'block'; errDiv.textContent = error.message; }
                 return false;
             }
             this.user = data.user;
             return true;
-        } catch (e) {
-            return false;
-        }
+        } catch (e) { return false; }
     },
 
     async logout() {
@@ -87,7 +81,6 @@ const Client = {
         }
         grid.innerHTML = bills.map(b => {
             const isLate = b.status !== 'PAID' && new Date(b.due_date) < new Date();
-            // FIXED: var(--neon-cyan) is now wrapped in quotes to prevent SyntaxErrors 
             const color = b.status === 'PAID' ? '#00ff88' : (isLate ? '#ff4f4f' : 'var(--neon-cyan)');
             return `
                 <div class="col-md-12 mb-2">
