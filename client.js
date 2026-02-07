@@ -33,18 +33,21 @@ const Client = {
         const gate = document.getElementById('gate');
         const portal = document.getElementById('portal');
         
-        // Start Fade Out of Login
+        // 1. Fade out the login gate
         gate.style.opacity = '0';
+        gate.style.transform = 'scale(0.9)'; // Slight push-back effect
         gate.style.pointerEvents = 'none';
         
-        // Start Fade In of Portal
+        // 2. Reveal and fade in the Portal
         portal.style.display = 'block';
         setTimeout(() => {
             portal.style.opacity = '1';
+            portal.style.transform = 'scale(1)';
             this.loadAccounts();
             this.loadBills();
-        }, 500);
+        }, 300);
 
+        // 3. Remove gate from layout completely after transition
         setTimeout(() => { gate.style.display = 'none'; }, 1000);
     },
 
@@ -65,7 +68,7 @@ const Client = {
             const bal = txs.filter(t => t.account_id === a.id).reduce((sum, t) => sum + Number(t.amount), 0);
             return `
                 <div class="col-md-6 mb-3">
-                    <div class="portal-btn">
+                    <div class="portal-btn gold-border">
                         <div class="mono tiny opacity-50">${a.name}</div>
                         <div class="h4 mb-0" style="color:#00f2ff;">${fmt(bal)}</div>
                     </div>
