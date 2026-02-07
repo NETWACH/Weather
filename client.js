@@ -30,10 +30,10 @@ const Client = {
                     errDiv.style.display = 'block';
                     errDiv.textContent = error.message;
                 }
-                return false; [cite: 1, 2]
+                return false;
             }
             this.user = data.user;
-            return true; [cite: 1, 2]
+            return true;
         } catch (e) {
             return false;
         }
@@ -87,8 +87,8 @@ const Client = {
         }
         grid.innerHTML = bills.map(b => {
             const isLate = b.status !== 'PAID' && new Date(b.due_date) < new Date();
-            // FIXED: var(--neon-cyan) is now wrapped in quotes
-            const color = b.status === 'PAID' ? '#00ff88' : (isLate ? '#ff4f4f' : 'var(--neon-cyan)'); [cite: 1, 2]
+            // FIXED: var(--neon-cyan) is now wrapped in quotes to prevent SyntaxErrors
+            const color = b.status === 'PAID' ? '#00ff88' : (isLate ? '#ff4f4f' : 'var(--neon-cyan)');
             return `
                 <div class="col-md-12 mb-2">
                     <div style="padding: 15px; background: rgba(255,255,255,0.03); border-left: 3px solid ${color}; display: flex; justify-content: space-between; align-items: center;">
