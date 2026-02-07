@@ -34,11 +34,15 @@ const Client = {
     },
 
     showDashboard() {
-        // CLEAN SWAP: Remove login gate, show portal
+        // FORCE HIDE everything from the login gate
         document.getElementById('gate').style.display = 'none';
-        document.getElementById('portal').style.display = 'block';
         
-        // LOAD DATA IMMEDIATELY
+        // SHOW the portal container
+        const portal = document.getElementById('portal');
+        portal.style.display = 'block';
+        portal.classList.add('animated', 'fadeIn');
+        
+        // INITIALIZE DATA
         this.loadAccounts();
         this.loadBills();
     },
@@ -54,7 +58,7 @@ const Client = {
         const grid = document.getElementById('grid-accounts');
         
         if(!accs?.length) { 
-            grid.innerHTML = '<div class="mono small opacity-50">> NO_DATA_DETECTED</div>'; 
+            grid.innerHTML = '<div class="mono small opacity-50">> NO_ACTIVE_CHANNELS</div>'; 
             return; 
         }
         
@@ -62,8 +66,8 @@ const Client = {
             const bal = txs.filter(t => t.account_id === a.id).reduce((sum, t) => sum + Number(t.amount), 0);
             return `
                 <div class="col-md-6 mb-3">
-                    <div class="portal-card">
-                        <div class="mono small opacity-50">${a.name}</div>
+                    <div class="portal-btn gold-border">
+                        <div class="mono tiny opacity-50">${a.name}</div>
                         <div class="h4 mb-0 text-cyan">${fmt(bal)}</div>
                     </div>
                 </div>`;
@@ -82,7 +86,7 @@ const Client = {
         list.innerHTML = bills.map(b => {
             const isLate = b.status !== 'PAID' && new Date(b.due_date) < new Date();
             const color = b.status === 'PAID' ? '#00ff88' : (isLate ? '#ff4f4f' : '#00f2ff');
-            return `<div class="mono small mb-2" style="color:${color}">[${b.status}] ${b.name}: ${fmt(b.amount)}</div>`;
+            return `<div class="mono tiny mb-2" style="color:${color}">[${b.status}] ${b.name}: ${fmt(b.amount)}</div>`;
         }).join('');
     }
 };
