@@ -4,84 +4,57 @@
     <title>Arc Void | System Portal</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    
     <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,600,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
-        :root { 
-            --glass: rgba(10, 10, 20, 0.85); 
-            --cyan: #00f2ff; 
-            --silver: #e0e0e0; 
-            --gold: #d4af37; 
-        }
+        :root { --glass: rgba(15, 15, 25, 0.7); --cyan: #00f2ff; --silver: #c0c0c0; --gold: #d4af37; }
         
-        body, html { 
-            height: 100vh; margin: 0; background: #05050a; 
-            font-family: 'Montserrat', sans-serif; overflow: hidden; 
-        }
+        body, html { height: 100vh; margin: 0; background: #000; font-family: 'Montserrat', sans-serif; overflow: hidden; }
 
-        /* 1. ANIMATED BUBBLE BACKGROUND */
-        .bubble-container {
+        /* REALISTIC BLURRED HORIZON BACKGROUND */
+        .background-scene {
             position: fixed; inset: 0; z-index: -1;
-            background: radial-gradient(circle at center, #0a0a1a 0%, #05050a 100%);
-        }
-        .bubble {
-            position: absolute; border-radius: 50%;
-            background: rgba(0, 242, 255, 0.04);
-            animation: float 25s infinite linear;
-        }
-        @keyframes float {
-            from { transform: translateY(110vh) scale(1); opacity: 0; }
-            50% { opacity: 1; }
-            to { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
+                        url('https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?auto=format&fit=crop&w=1920&q=80') no-repeat center center;
+            background-size: cover;
+            filter: blur(8px) brightness(0.8);
+            transform: scale(1.1); /* Prevents white edges from blur */
         }
 
-        /* 2. TRANSITION ANIMATIONS */
-        #gate, #portal { height: 100vh; width: 100%; position: absolute; top: 0; left: 0; transition: all 0.8s cubic-bezier(0.85, 0, 0.15, 1); }
-        #portal { display: none; padding: 60px 20px; opacity: 0; transform: scale(0.95); }
+        #gate, #portal { height: 100vh; width: 100%; position: absolute; top: 0; left: 0; transition: opacity 0.8s ease; }
+        #portal { display: none; opacity: 0; padding: 80px 40px; }
 
-        /* The "Slap Up" Animation */
-        .gate-exit { transform: translateY(-100%); opacity: 0; filter: blur(20px); }
-        
-        /* The Desktop Fade In */
-        .desktop-enter { opacity: 1 !important; transform: scale(1) !important; }
-
+        /* CLASSY FROSTED WINDOWS */
         .system-box { 
-            background: var(--glass); backdrop-filter: blur(50px); 
-            border: 1px solid rgba(255,255,255,0.05); border-radius: 15px; 
-            padding: 40px; box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            background: var(--glass); backdrop-filter: blur(25px); 
+            border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; 
+            padding: 40px; box-shadow: 0 50px 100px rgba(0,0,0,0.6);
         }
 
         .portal-btn {
-            background: rgba(255,255,255,0.02);
-            padding: 25px; border-radius: 10px;
-            transition: 0.4s; margin-bottom: 15px;
-            cursor: pointer; border: 1px solid var(--silver);
+            background: rgba(255,255,255,0.03); padding: 25px; border-radius: 8px;
+            border: 1px solid var(--gold); transition: 0.3s;
         }
-        .gold-border { border-color: var(--gold); }
-        .portal-btn:hover { background: rgba(0, 242, 255, 0.05); transform: translateY(-3px); border-color: var(--cyan); }
+        .portal-btn:hover { background: rgba(212, 175, 55, 0.1); transform: translateY(-2px); }
 
-        .mono { font-family: 'Courier New', monospace; color: var(--cyan); }
-        .tiny { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
-        .text-cyan { color: var(--cyan); }
+        .mono { font-family: 'Courier New', monospace; color: var(--cyan); letter-spacing: 1px; }
+        .tiny { font-size: 10px; text-transform: uppercase; }
+
+        .form-control { background: rgba(0,0,0,0.4) !important; color: white !important; border: 1px solid rgba(255,255,255,0.1) !important; padding: 25px !important; }
+        .btn-boot { border: 1px solid var(--cyan); color: var(--cyan); letter-spacing: 4px; transition: 0.4s; padding: 15px; text-transform: uppercase; font-weight: 700; }
+        .btn-boot:hover { background: var(--cyan); color: #000; box-shadow: 0 0 30px var(--cyan); }
     </style>
 </head>
 <body>
-    <div class="bubble-container" id="bg"></div>
+    <div class="background-scene"></div>
 
     <section id="gate" class="d-flex align-items-center justify-content-center">
-        <div class="system-box text-center" style="width: 420px; border-color: var(--silver);">
-            <h2 class="mb-5 text-white" style="letter-spacing: 12px; font-weight: 200;">ARC VOID</h2>
-            <div class="form-group mb-3">
-                <input type="email" id="email" class="form-control bg-dark text-white border-0 py-4" placeholder="USER_ID">
-            </div>
-            <div class="form-group mb-4">
-                <input type="password" id="password" class="form-control bg-dark text-white border-0 py-4" placeholder="PASSKEY">
-            </div>
-            <button class="btn btn-outline-info btn-block py-3" onclick="UI.start()">BOOT SYSTEM</button>
+        <div class="system-box text-center" style="width: 450px;">
+            <h1 class="mb-5 text-white" style="letter-spacing: 15px; font-weight: 200;">ARC VOID</h1>
+            <div class="form-group mb-3"><input type="email" id="email" class="form-control" placeholder="USER_ID"></div>
+            <div class="form-group mb-4"><input type="password" id="password" class="form-control" placeholder="PASSKEY"></div>
+            <button class="btn btn-block btn-boot" onclick="UI.start()">BOOT SYSTEM</button>
             <div id="login-err" class="mt-3 text-danger tiny mono"></div>
         </div>
     </section>
@@ -90,26 +63,23 @@
         <div class="container">
             <div class="d-flex justify-content-between align-items-end mb-5">
                 <div>
-                    <h1 class="mono m-0" id="welcome-msg" style="font-size: 28px;">WELCOME_USER</h1>
-                    <span class="tiny opacity-50">KINETIC_OS // VER 2.5</span>
+                    <h1 class="mono m-0" style="font-size: 32px; color: white;">WELCOME_USER</h1>
+                    <span class="tiny opacity-50 text-white">SYSTEM STATUS: NOMINAL // VER 2.5</span>
                 </div>
-                <button class="btn btn-sm btn-outline-danger px-4" onclick="Client.logout()">SHUTDOWN</button>
+                <button class="btn btn-sm btn-outline-danger px-4" style="border-radius:0;" onclick="Client.logout()">SHUTDOWN</button>
             </div>
 
             <div class="row">
                 <div class="col-lg-7 mb-4">
                     <div class="system-box h-100">
-                        <h5 class="mono mb-4"><i class="fa fa-university mr-2"></i> FINANCIAL_LEDGER</h5>
-                        <div id="grid-accounts" class="row">
-                            </div>
+                        <h5 class="mono mb-4" style="color:var(--silver);">FINANCIAL_LEDGER</h5>
+                        <div id="grid-accounts" class="row"></div>
                     </div>
                 </div>
-
                 <div class="col-lg-5 mb-4">
                     <div class="system-box h-100">
-                        <h5 class="mono mb-4"><i class="fa fa-archive mr-2"></i> PANTRY_MANIFEST</h5>
-                        <div id="grid-bills" class="mono">
-                            </div>
+                        <h5 class="mono mb-4" style="color:var(--silver);">PANTRY_MANIFEST</h5>
+                        <div id="grid-bills" class="mono"></div>
                     </div>
                 </div>
             </div>
@@ -119,30 +89,13 @@
     <script src="js/jquery.min.js"></script>
     <script src="client.js"></script>
     <script>
-        // Generate CSS Bubbles
-        const bg = document.getElementById('bg');
-        for (let i = 0; i < 15; i++) {
-            const b = document.createElement('div');
-            b.className = 'bubble';
-            const size = Math.random() * 60 + 20 + 'px';
-            b.style.width = size; b.style.height = size;
-            b.style.left = Math.random() * 100 + '%';
-            b.style.animationDelay = Math.random() * 20 + 's';
-            bg.appendChild(b);
-        }
-
         const UI = {
             start: async function() {
                 const btn = document.querySelector('#gate button');
                 btn.innerText = "AUTHENTICATING..."; btn.disabled = true;
                 const success = await Client.login();
-                if (success) { 
-                    Client.showDashboard(); 
-                } 
-                else { 
-                    btn.innerText = "BOOT SYSTEM"; 
-                    btn.disabled = false; 
-                }
+                if (success) { Client.showDashboard(); } 
+                else { btn.innerText = "BOOT SYSTEM"; btn.disabled = false; }
             }
         };
     </script>
