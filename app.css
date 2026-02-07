@@ -1,0 +1,171 @@
+:root {
+  --bg-space: #020409;
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --accent-google: #8ab4f8; 
+  --accent-emerald: #4df4ff;
+  --accent-ruby: #ff4fd8;
+  --text-main: #ffffff;
+  --muted: rgba(255, 255, 255, 0.6);
+  --mono: 'JetBrains Mono', monospace;
+  --pixel-radius: 32px; /* Authentic Pixel 9 Pro XL curve */
+  --shadow-deep: 0 25px 50px rgba(0, 0, 0, 0.6);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+  /* Deep Space Background with Nebula Leaks */
+  background: 
+    radial-gradient(circle at 15% 15%, rgba(77, 244, 255, 0.25), transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(255, 79, 216, 0.2), transparent 45%),
+    radial-gradient(circle at 50% 50%, #0a0c14, #020409);
+  background-attachment: fixed;
+}
+
+/* --- Glassmorphism Panels --- */
+.glass-panel {
+  background: var(--glass);
+  backdrop-filter: blur(25px) saturate(160%);
+  -webkit-backdrop-filter: blur(25px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--pixel-radius);
+  box-shadow: var(--shadow-deep);
+  position: relative;
+}
+
+.app-container {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  padding: 24px;
+  height: 100vh;
+}
+
+/* --- Floating Login (Gate) --- */
+.gate {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.login {
+  width: 400px;
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--pixel-radius);
+  padding: 40px;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+  animation: floatPortal 8s ease-in-out infinite;
+  text-align: center;
+}
+
+@keyframes floatPortal {
+  0%, 100% { transform: translateY(0px) rotateX(2deg); }
+  50% { transform: translateY(-20px) rotateX(-2deg); }
+}
+
+/* --- RGB Slow Motion Buttons --- */
+.btn-elite {
+  position: relative;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px 28px;
+  border-radius: 999px; /* Pill Shape */
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 1;
+  transition: 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-elite::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  background: linear-gradient(45deg, #00d2ff, #91ff00, #ff00c8, #00d2ff);
+  background-size: 300%;
+  border-radius: 999px;
+  filter: blur(10px);
+  opacity: 0.5;
+  animation: rgbGlow 12s linear infinite;
+}
+
+@keyframes rgbGlow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* --- Navigation --- */
+.sidebar { padding: 30px 20px; }
+
+.nav-item {
+  padding: 14px 20px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+  transition: 0.3s;
+  font-weight: 600;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.nav-item.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* --- Quadrant Grid for Dashboard --- */
+#view-ledger {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 20px;
+}
+
+.acc-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 28px;
+  padding: 25px;
+  transition: 0.3s;
+}
+
+.acc-box:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-5px);
+}
+
+/* --- Forms & Inputs --- */
+.input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-border);
+  border-radius: 15px;
+  padding: 12px;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.muted { color: var(--muted); font-size: 14px; }
+.title { font-size: 32px; font-weight: 700; margin-bottom: 5px; }
+
+/* Responsive */
+@media (max-width: 980px) {
+  .app-container { grid-template-columns: 1fr; }
+  #view-ledger { grid-template-columns: 1fr; }
+}
