@@ -87,7 +87,7 @@ const Client = {
         }
         grid.innerHTML = bills.map(b => {
             const isLate = b.status !== 'PAID' && new Date(b.due_date) < new Date();
-            // FIXED: var(--neon-cyan) is now wrapped in quotes to prevent SyntaxErrors
+            // FIXED: var(--neon-cyan) is now wrapped in quotes to prevent SyntaxErrors 
             const color = b.status === 'PAID' ? '#00ff88' : (isLate ? '#ff4f4f' : 'var(--neon-cyan)');
             return `
                 <div class="col-md-12 mb-2">
