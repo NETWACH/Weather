@@ -63,7 +63,7 @@ const Client = {
             const bal = txs.filter(t => t.account_id === a.id).reduce((sum, t) => sum + Number(t.amount), 0);
             return `
                 <div class="col-md-6 mb-3">
-                    <div class="system-window p-3" style="--ring-color: var(--silver);">
+                    <div class="system-window p-3" style="border: 1px solid rgba(192,192,192,0.3);">
                         <div class="mono small opacity-50">${a.name}</div>
                         <div class="h4 mb-0 text-info">${fmt(bal)}</div>
                     </div>
@@ -74,7 +74,11 @@ const Client = {
     async loadBills() {
         const { data: bills } = await sb.from('bills').select('*').order('due_date');
         const grid = document.getElementById('grid-bills');
-        if(!grid || !bills?.length) return;
+        if(!grid) return;
+        if(!bills?.length) {
+            grid.innerHTML = '<div class="mono small opacity-50">> BUFFER_EMPTY</div>';
+            return;
+        }
         grid.innerHTML = bills.map(b => {
             const isLate = b.status !== 'PAID' && new Date(b.due_date) < new Date();
             const color = b.status === 'PAID' ? '#00ff88' : (isLate ? '#ff4f4f' : '#00f2ff');
