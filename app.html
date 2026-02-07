@@ -152,8 +152,8 @@
                 const btn = document.querySelector('#gate button');
                 const loginErr = document.getElementById('login-err');
                 
-                // SAFETY: Ensure Client engine is fully loaded
-                if (typeof Client === 'undefined') { [cite: 1, 2]
+                // SAFETY CHECK: Ensure Client engine is fully online
+                if (typeof Client === 'undefined') {
                     loginErr.innerText = "CRITICAL: CLIENT_ENGINE_OFFLINE";
                     return;
                 }
@@ -161,7 +161,7 @@
                 btn.innerText = "AUTHENTICATING...";
                 btn.disabled = true;
 
-                const success = await Client.login(); [cite: 1, 2]
+                const success = await Client.login();
 
                 if (success) {
                     document.getElementById('gate').classList.add('animated', 'fadeOut');
