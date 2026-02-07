@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Arc Void OS | Desktop</title>
+    <title>Arc Void OS | Enterprise Desktop</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,600,700&display=swap" rel="stylesheet">
@@ -10,45 +10,44 @@
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --panel-bg: rgba(10, 10, 15, 0.95); --glass: rgba(255, 255, 255, 0.08); --cyan: #00f2ff; --silver: #c0c0c0; --gold: #d4af37; }
-        body, html { height: 100%; margin: 0; background: #000; font-family: 'Montserrat', sans-serif; overflow: hidden; }
+        :root { --panel-bg: rgba(10, 10, 15, 0.95); --glass: rgba(255, 255, 255, 0.08); --cyan: #00f2ff; --silver: #c0c0c0; }
+        body, html { height: 100%; margin: 0; background: #050508; font-family: 'Montserrat', sans-serif; overflow: hidden; }
         
-        .nebula { position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: url('images/bg_1.jpg') no-repeat center; background-size: cover; z-index: -1; animation: spin 180s linear infinite; opacity: 0.4; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        /* Sleek Metallic Border for Login */
-        .metallic-gate { border: 1px solid var(--silver); box-shadow: 0 0 20px rgba(192, 192, 192, 0.2); }
+        /* Moving Bubbles/Nebula Background */
+        .bubble-bg {
+            position: fixed; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #050508 100%);
+            z-index: -1; overflow: hidden;
+        }
+        .bubble-bg::after {
+            content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background-image: radial-gradient(circle, rgba(0, 242, 255, 0.05) 10%, transparent 10.5%);
+            background-size: 100px 100px;
+            animation: bubbleMove 60s linear infinite;
+        }
+        @keyframes bubbleMove { from { transform: translate(0,0); } to { transform: translate(-100px, -100px); } }
 
         #desktop { height: calc(100vh - 55px); padding: 50px; display: none; position: relative; z-index: 5; }
         
-        /* Desktop Icons */
         .icon-grid { display: flex; flex-direction: column; gap: 30px; width: 100px; }
         .os-icon { text-align: center; cursor: pointer; transition: 0.2s; }
-        .os-icon i { font-size: 40px; color: var(--silver); text-shadow: 0 0 10px var(--cyan); display: block; margin-bottom: 5px; }
+        .os-icon i { font-size: 40px; color: var(--silver); text-shadow: 0 0 15px var(--cyan); display: block; margin-bottom: 5px; }
         .os-icon span { font-size: 10px; font-family: monospace; color: #fff; }
-        .os-icon:hover { transform: scale(1.1); }
 
-        .system-window { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .system-window { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; }
         .mono { font-family: 'Courier New', monospace; color: var(--cyan); }
         .taskbar { position: fixed; bottom: 0; width: 100%; height: 55px; background: var(--panel-bg); backdrop-filter: blur(30px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; padding: 0 25px; z-index: 10000; }
         
-        #lock-screen { display: none; position: fixed; inset: 0; z-index: 20000; background: rgba(0,0,0,0.6); backdrop-filter: blur(80px); align-items: center; justify-content: center; }
+        /* Metallic Login Border */
+        .login-box { border: 1px solid var(--silver); box-shadow: 0 0 30px rgba(0, 242, 255, 0.1); }
     </style>
 </head>
 <body>
-    <div class="nebula"></div>
-
-    <div id="lock-screen">
-        <div class="system-window text-center p-5" style="width: 350px;">
-            <h4 class="mono mb-4">SYSTEM_SECURED</h4>
-            <input type="password" id="unlock-pass" class="form-control mb-3 bg-dark text-white border-0 text-center" placeholder="PIN">
-            <button class="btn btn-primary w-100" onclick="OS.unlock()">UNLOCK</button>
-        </div>
-    </div>
+    <div class="bubble-bg"></div>
 
     <section id="gate" class="h-100 d-flex align-items-center justify-content-center">
-        <div class="system-window metallic-gate text-center p-5" style="width: 400px;">
-            <h2 class="mb-5" style="letter-spacing: 8px;">ARC VOID</h2>
+        <div class="system-window login-box text-center p-5" style="width: 400px;">
+            <h2 class="mb-5" style="letter-spacing: 10px;">ARC VOID</h2>
             <input type="email" id="email" class="form-control mb-3 bg-transparent text-white border-secondary" placeholder="USER_ID">
             <input type="password" id="password" class="form-control mb-3 bg-transparent text-white border-secondary" placeholder="PASSKEY">
             <button class="btn btn-outline-info btn-block py-2" onclick="OS.boot()">BOOT_SYSTEM</button>
@@ -85,7 +84,6 @@
     <div class="taskbar" id="os-panel" style="display: none;">
         <div class="mono small mr-4">ARC_OS</div>
         <div class="flex-grow-1"></div>
-        <i class="fa fa-lock text-white mx-3" style="cursor:pointer" onclick="OS.lock()"></i>
         <i class="fa fa-power-off text-danger mx-3" style="cursor:pointer" onclick="OS.shutdown()"></i>
         <span id="os-clock" class="text-white mono ml-2">00:00:00</span>
     </div>
@@ -101,14 +99,7 @@
                 if (success) { Client.launchOS(); }
                 else { btn.innerText = "BOOT_SYSTEM"; btn.disabled = false; }
             },
-            lock: () => { document.getElementById('lock-screen').style.display = 'flex'; },
-            unlock: () => {
-                if(document.getElementById('unlock-pass').value === "1234") {
-                    document.getElementById('lock-screen').style.display = 'none';
-                    document.getElementById('unlock-pass').value = '';
-                }
-            },
-            shutdown: () => { if(confirm("SHUTDOWN?")) Client.logout(); },
+            shutdown: () => { if(confirm("SHUTDOWN OS?")) Client.logout(); },
             startClock: () => { setInterval(() => { document.getElementById('os-clock').innerText = new Date().toLocaleTimeString(); }, 1000); }
         };
     </script>
