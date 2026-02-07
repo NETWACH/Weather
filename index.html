@@ -1,131 +1,97 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>ARK VORD</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:wght@600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-
-  <div id="gate" class="gate">
-    <div class="login">
-      <div class="crest"><i class="fa-solid fa-shield-cat"></i></div>
-      <h3 style="font-family: Fraunces; font-size: 24px; margin-bottom: 24px;">ARK CLIENT</h3>
-      <div style="display:flex; flex-direction:column; gap:12px;">
-        <input class="input" id="email" type="email" placeholder="Identity (Email)" />
-        <input class="input" id="password" type="password" placeholder="Passkey" />
-        <button class="btn-elite" style="justify-content:center; width:100%;" onclick="Client.login()">
-          <i class="fa-solid fa-fingerprint"></i> AUTHENTICATE
-        </button>
-      </div>
-      <div id="login-err" class="err" style="color:var(--accent-ruby); margin-top:15px; font-size:12px; display:none;"></div>
-    </div>
-  </div>
-
-  <div id="app" class="app-container" style="display:none;">
+  <head>
+    <title>Arc Void | Home Billing System</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
-    <aside class="sidebar glass-panel">
-      <div class="titlebar">
-        <div class="traffic">
-          <span class="tl close"></span><span class="tl min"></span><span class="tl max"></span>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="app.css"> <style>
+      /* Landing Page Specific Overrides */
+      .hero-section {
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 20px;
+      }
+      .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        padding: 20px 50px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1000;
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+      }
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        padding: 100px 50px;
+      }
+      .nav-link {
+        color: var(--muted);
+        margin: 0 20px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: 0.3s;
+      }
+      .nav-link:hover { color: #fff; }
+    </style>
+  </head>
+  <body>
+
+    <nav class="navbar">
+      <div style="font-family: 'Fraunces'; font-size: 1.5rem; letter-spacing: 2px;">ARC VOID</div>
+      <div>
+        <a href="#features" class="nav-link">Features</a>
+        <a href="contact.html" class="nav-link">Contact</a>
+        <a href="app.html" class="btn-elite" style="text-decoration: none; font-size: 12px; padding: 10px 25px;">
+          OPEN PORTAL <i class="fa fa-rocket" style="margin-left: 8px;"></i>
+        </a>
+      </div>
+    </nav>
+
+    <section class="hero-section">
+      <div class="login" style="width: min(800px, 100%); animation: floatPortal 10s ease-in-out infinite;">
+        <h1 style="font-family: 'Fraunces'; font-size: 4rem; margin-bottom: 10px; line-height: 1;">Private. Fast. Beautiful.</h1>
+        <p class="muted" style="font-size: 1.2rem; margin-bottom: 40px;">Home billing, reimagined for the modern orbital lifestyle.</p>
+        <div style="display: flex; gap: 20px; justify-content: center;">
+          <a href="app.html" class="btn-elite" style="padding: 18px 40px; font-size: 1rem;">GET STARTED</a>
+          <a href="#features" class="btn-elite" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2);">LEARN MORE</a>
         </div>
       </div>
-      
-      <div style="padding: 0 10px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 10px; text-align: center;">
-        <div style="font-family: Fraunces; font-size: 20px; color: var(--text-main);">ARK VORD</div>
-        <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-ice);">Finance Protocol</div>
+    </section>
+
+    <section id="features" class="feature-grid">
+      <div class="acc-box">
+        <i class="fa fa-shield" style="font-size: 2rem; color: var(--accent-emerald); margin-bottom: 20px;"></i>
+        <h3>Secure Ledger</h3>
+        <p class="muted">End-to-end encrypted billing data stored in secure cloud containers.</p>
       </div>
-
-      <nav>
-        <div class="nav-item active" onclick="Client.tab('ledger')">
-          <i class="fa-solid fa-layer-group" style="width:20px;"></i> Dashboard
-        </div>
-        <div class="nav-item" onclick="Client.tab('bills')">
-          <i class="fa-solid fa-receipt" style="width:20px;"></i> Obligations
-        </div>
-        <div class="nav-item" onclick="Client.tab('chat')">
-          <i class="fa-solid fa-headset" style="width:20px;"></i> Concierge
-        </div>
-      </nav>
-
-      <div style="margin-top:auto;">
-        <button class="btn-danger" style="width:100%; justify-content:center;" onclick="Client.logout()">
-          <i class="fa-solid fa-power-off"></i> DISCONNECT
-        </button>
+      <div class="acc-box">
+        <i class="fa fa-pie-chart" style="font-size: 2rem; color: var(--accent-ruby); margin-bottom: 20px;"></i>
+        <h3>Deep Analytics</h3>
+        <p class="muted">Visual spending breakdowns that help you control your household burn rate.</p>
       </div>
-    </aside>
-
-    <main class="glass-panel">
-      <div class="titlebar">
-        <div class="titlebar-title">Overview</div>
-        <div style="display:flex; gap:10px;">
-          <i class="fa-solid fa-bell muted" style="cursor:pointer;"></i>
-          <i class="fa-solid fa-user-circle muted" style="cursor:pointer;"></i>
-        </div>
+      <div class="acc-box">
+        <i class="fa fa-bolt" style="font-size: 2rem; color: var(--accent-google); margin-bottom: 20px;"></i>
+        <h3>Instant Sync</h3>
+        <p class="muted">Real-time updates across all your devices with sub-second latency.</p>
       </div>
+    </section>
 
-      <section id="view-ledger">
-        <div class="toprow">
-          <div>
-            <h2 class="title">Net Worth</h2>
-            <div class="muted">Real-time asset tracking</div>
-          </div>
-        </div>
-        <div id="grid-accounts" class="accounts-grid">Loading assets...</div>
-      </section>
+    <footer style="text-align: center; padding: 50px; border-top: 1px solid rgba(255,255,255,0.1);">
+      <p class="muted" style="font-size: 12px; letter-spacing: 2px;">
+        &copy; <script>document.write(new Date().getFullYear());</script> ARC VOID. SYSTEM STATUS: NOMINAL.
+      </p>
+    </footer>
 
-      <section id="view-bills" style="display:none;">
-        <div class="toprow">
-          <div>
-            <h2 class="title">Obligations</h2>
-            <div class="muted">Upcoming payments</div>
-          </div>
-          <button class="btn-elite" onclick="document.getElementById('modal-bill').style.display='flex'">
-            <i class="fa-solid fa-plus"></i> NEW
-          </button>
-        </div>
-        <div id="grid-bills" class="pantry-grid"></div>
-      </section>
-
-      <section id="view-chat" style="display:none;">
-        <div class="toprow">
-          <h2 class="title">Concierge</h2>
-        </div>
-        <div id="chat-box" class="chat-container"></div>
-        <div class="chat-input-area">
-          <input id="chat-input" class="input" placeholder="Type a message..." />
-          <button class="btn-elite" onclick="Client.sendMsg()"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <div id="modal-bill" class="modal" onclick="if(event.target.id==='modal-bill') this.style.display='none'">
-    <div class="sheet">
-      <div class="sheethead">
-        <h4>New Liability</h4>
-        <i class="fa-solid fa-xmark muted" onclick="document.getElementById('modal-bill').style.display='none'" style="cursor:pointer"></i>
-      </div>
-      <div class="sheetbody">
-        <input id="b-name" class="input" placeholder="Payee Name" />
-        <select id="b-type" class="select">
-          <option value="General">General Expense</option>
-          <option value="Utility">Utility / Service</option>
-          <option value="Loan">Debt Service</option>
-        </select>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-          <input id="b-amt" class="input" type="number" placeholder="0.00" />
-          <input id="b-date" class="input" type="date" />
-        </div>
-        <button class="btn-elite" style="justify-content:center;" onclick="Client.addBill()">AUTHORIZE</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="client.js"></script>
-</body>
+  </body>
 </html>
