@@ -10,54 +10,40 @@ const Client = {
         const { data } = await sb.auth.getSession();
         if (data?.session) {
             this.user = data.session.user;
-            
-            // OS Bootstrap Sequence
-            document.getElementById('gate').style.display = 'none';
-            document.getElementById('desktop').style.display = 'block';
-            document.getElementById('os-panel').style.display = 'flex';
-            
-            if (typeof OS !== 'undefined') {
-                OS.startClock();
-            }
-            this.tab('ledger');
+            this.launchOS();
         }
     },
 
     async login() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
-
         try {
             const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-            if (error) {
-                const errDiv = document.getElementById('login-err');
-                if (errDiv) {
-                    errDiv.style.display = 'block';
-                    errDiv.textContent = error.message;
-                }
-                return false;
-            }
+            if (error) throw error;
             this.user = data.user;
-            return true; 
+            return true;
         } catch (e) {
+            const errDiv = document.getElementById('login-err');
+            if (errDiv) errDiv.textContent = e.message;
             return false;
         }
     },
 
+    launchOS() {
+        document.getElementById('gate').style.display = 'none';
+        document.getElementById('desktop').style.display = 'block';
+        document.getElementById('os-panel').style.display = 'flex';
+        if (typeof OS !== 'undefined') OS.startClock();
+        this.tab('ledger');
+    },
+
     async logout() {
-        // Full System Purge
         await sb.auth.signOut();
-        // Redirecting to index.html forces a full browser refresh, killing the OS UI
         window.location.href = 'index.html'; 
     },
 
     tab(name) {
-        const sections = ['ledger', 'pantry', 'bills'];
-        sections.forEach(s => {
-            const el = document.getElementById('view-' + s);
-            if (el) el.style.display = 'none';
-        });
-
+        document.querySelectorAll('.view-section').forEach(s => s.style.display = 'none');
         const target = document.getElementById('view-' + name);
         if (target) target.style.display = 'block';
         
@@ -69,20 +55,17 @@ const Client = {
         const { data: accs } = await sb.from('accounts').select('*');
         const { data: txs } = await sb.from('transactions').select('*');
         const grid = document.getElementById('grid-accounts');
-        
         if(!accs?.length) { 
-            grid.innerHTML = '<div class="mono">> NO_ACTIVE_ACCOUNTS_FOUND</div>'; 
+            grid.innerHTML = '<div class="mono">> NO_DATA_STREAMS_ACTIVE</div>'; 
             return; 
         }
-        
         grid.innerHTML = accs.map(a => {
             const bal = txs.filter(t => t.account_id === a.id).reduce((sum, t) => sum + Number(t.amount), 0);
             return `
                 <div class="col-md-6 mb-3">
-                    <div style="padding: 20px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
-                        <div class="mono" style="font-size: 10px; text-transform: uppercase; opacity: 0.6;">${a.name}</div>
-                        <div style="font-size: 22px; font-weight: 700; margin: 5px 0; color: var(--neon-cyan);">${fmt(bal)}</div>
-                        <div class="mono" style="font-size: 9px; opacity: 0.4;">ID: ${a.id.slice(0,12)}...</div>
+                    <div class="system-window p-3" style="--ring-color: var(--silver);">
+                        <div class="mono small opacity-50">${a.name}</div>
+                        <div class="h4 mb-0 text-info">${fmt(bal)}</div>
                     </div>
                 </div>`;
         }).join('');
@@ -91,24 +74,11 @@ const Client = {
     async loadBills() {
         const { data: bills } = await sb.from('bills').select('*').order('due_date');
         const grid = document.getElementById('grid-bills');
-        
-        if(!grid) return;
-        if(!bills || bills.length === 0) {
-            grid.innerHTML = '<div class="mono">> OBLIGATION_BUFFER_EMPTY</div>';
-            return;
-        }
-
+        if(!grid || !bills?.length) return;
         grid.innerHTML = bills.map(b => {
             const isLate = b.status !== 'PAID' && new Date(b.due_date) < new Date();
-            const statusColor = b.status === 'PAID' ? '#00ff88' : (isLate ? '#ff4f4f' : 'var(--neon-cyan)');
-            
-            return `
-                <div class="col-md-12 mb-2">
-                    <div style="padding: 15px; background: rgba(255,255,255,0.03); border-left: 3px solid ${statusColor}; display: flex; justify-content: space-between; align-items: center;">
-                        <div class="mono" style="font-size: 14px;">${b.name}</div>
-                        <div class="mono" style="color: ${statusColor};">${fmt(b.amount)}</div>
-                    </div>
-                </div>`;
+            const color = b.status === 'PAID' ? '#00ff88' : (isLate ? '#ff4f4f' : '#00f2ff');
+            return `<div class="mono small mb-2" style="color:${color}">[${b.status}] ${b.name}: ${fmt(b.amount)}</div>`;
         }).join('');
     }
 };
