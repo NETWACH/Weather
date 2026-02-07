@@ -13,86 +13,99 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        :root { --glass: rgba(255, 255, 255, 0.07); --cyan: #00f2ff; --silver: #c0c0c0; }
+        :root { 
+            --glass: rgba(10, 10, 20, 0.8); 
+            --cyan: #00f2ff; 
+            --silver: #e0e0e0; 
+            --gold: #d4af37; 
+        }
         
         body, html { 
-            height: 100vh; margin: 0; background: #050508; 
+            height: 100vh; margin: 0; background: #05050a; 
             font-family: 'Montserrat', sans-serif; overflow: hidden; 
         }
 
-        /* Moving Bubbles Background */
-        .bubble-bg {
-            position: fixed; inset: 0;
-            background: radial-gradient(circle at 50% 50%, #0d0d1a 0%, #050508 100%);
-            z-index: -1;
+        /* Animated Bubble Background */
+        .bubble-container {
+            position: fixed; inset: 0; z-index: -1;
+            background: radial-gradient(circle at center, #0a0a1a 0%, #05050a 100%);
         }
-        .bubble-bg::after {
-            content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background-image: radial-gradient(circle, rgba(0, 242, 255, 0.04) 10%, transparent 10.5%);
-            background-size: 100px 100px;
-            animation: bubbleMove 70s linear infinite;
+        .bubble {
+            position: absolute; border-radius: 50%;
+            background: rgba(0, 242, 255, 0.03);
+            animation: float 25s infinite linear;
         }
-        @keyframes bubbleMove { from { transform: translate(0,0); } to { transform: translate(-100px, -100px); } }
+        @keyframes float {
+            from { transform: translateY(100vh) scale(1); opacity: 0; }
+            50% { opacity: 1; }
+            to { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
 
-        /* Gate and Portal Containers */
+        /* Layout Containers */
         #gate, #portal { height: 100vh; width: 100%; position: absolute; top: 0; left: 0; }
-        #portal { display: none; overflow-y: auto; padding: 40px 20px; }
+        #portal { display: none; padding: 60px 20px; overflow-y: auto; }
 
         .system-box { 
-            background: var(--glass); backdrop-filter: blur(40px); 
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; 
-            color: #fff; padding: 30px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            background: var(--glass); backdrop-filter: blur(50px); 
+            border: 1px solid rgba(255,255,255,0.05); border-radius: 15px; 
+            padding: 30px; box-shadow: 0 40px 100px rgba(0,0,0,0.8);
         }
 
-        .portal-card {
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(192, 192, 192, 0.15);
-            padding: 20px; border-radius: 10px; transition: 0.3s;
+        /* Metallic Button Look */
+        .portal-btn {
+            background: rgba(255,255,255,0.02);
+            padding: 20px; border-radius: 10px;
+            transition: 0.4s; margin-bottom: 15px;
+            cursor: pointer;
         }
-        .portal-card:hover { border-color: var(--cyan); background: rgba(0, 242, 255, 0.05); }
+        .silver-border { border: 1px solid var(--silver); box-shadow: 0 0 15px rgba(224, 224, 224, 0.1); }
+        .gold-border { border: 1px solid var(--gold); box-shadow: 0 0 15px rgba(212, 175, 55, 0.1); }
+        .portal-btn:hover { background: rgba(0, 242, 255, 0.05); transform: translateY(-3px); }
 
         .mono { font-family: 'Courier New', monospace; color: var(--cyan); }
+        .tiny { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
         .text-cyan { color: var(--cyan); }
-
-        /* Metallic Login Border */
-        .login-border { border: 1px solid var(--silver); }
     </style>
 </head>
 <body>
-    <div class="bubble-bg"></div>
+    <div class="bubble-container" id="bg"></div>
 
     <section id="gate" class="d-flex align-items-center justify-content-center">
-        <div class="system-box login-border text-center" style="width: 400px;">
-            <h2 class="mb-4" style="letter-spacing: 10px; font-weight: 300;">ARC VOID</h2>
-            <div class="form-group"><input type="email" id="email" class="form-control bg-transparent text-white border-secondary" placeholder="USER_ID"></div>
-            <div class="form-group"><input type="password" id="password" class="form-control bg-transparent text-white border-secondary" placeholder="PASSKEY"></div>
-            <button class="btn btn-outline-info btn-block mt-4 py-2" onclick="UI.start()">BOOT SYSTEM</button>
-            <div id="login-err" class="mt-3 text-danger small mono"></div>
+        <div class="system-box silver-border text-center" style="width: 400px; background: rgba(0,0,0,0.4);">
+            <h2 class="mb-5 text-white" style="letter-spacing: 12px; font-weight: 200;">ARC VOID</h2>
+            <div class="form-group"><input type="email" id="email" class="form-control bg-dark text-white border-0" placeholder="USER_ID"></div>
+            <div class="form-group"><input type="password" id="password" class="form-control bg-dark text-white border-0" placeholder="PASSKEY"></div>
+            <button class="btn btn-outline-info btn-block mt-5 py-3" onclick="UI.start()">BOOT SYSTEM</button>
+            <div id="login-err" class="mt-3 text-danger tiny mono"></div>
         </div>
     </section>
 
     <main id="portal">
         <div class="container">
-            <div class="d-flex justify-content-between align-items-center mb-5">
+            <div class="d-flex justify-content-between align-items-end mb-5">
                 <div>
-                    <h1 class="mono m-0" style="font-size: 24px;">SYSTEM_PORTAL</h1>
-                    <span class="small opacity-50">KINETIC_OS // VER 2.5</span>
+                    <h1 class="mono m-0" style="font-size: 28px;">SYSTEM_PORTAL</h1>
+                    <span class="tiny opacity-50">KINETIC_OS // VER 2.5</span>
                 </div>
                 <button class="btn btn-sm btn-outline-danger px-4" onclick="Client.logout()">SHUTDOWN</button>
             </div>
 
             <div class="row">
-                <div class="col-lg-8 mb-4">
+                <div class="col-lg-7 mb-4">
                     <div class="system-box h-100">
-                        <h5 class="mono mb-4"><i class="fa fa-university mr-2"></i> FINANCIAL_LEDGER</h5>
+                        <div class="d-flex justify-content-between mb-4">
+                            <h5 class="mono m-0"><i class="fa fa-university mr-2"></i> FINANCIAL_LEDGER</h5>
+                            <i class="fa fa-refresh opacity-50"></i>
+                        </div>
                         <div id="grid-accounts" class="row">
                             </div>
                     </div>
                 </div>
 
-                <div class="col-lg-4 mb-4">
+                <div class="col-lg-5 mb-4">
                     <div class="system-box h-100">
                         <h5 class="mono mb-4"><i class="fa fa-archive mr-2"></i> PANTRY_MANIFEST</h5>
-                        <div id="grid-bills" class="mono small">
+                        <div id="grid-bills" class="mono">
                             </div>
                     </div>
                 </div>
@@ -103,17 +116,25 @@
     <script src="js/jquery.min.js"></script>
     <script src="client.js"></script>
     <script>
+        // Generate CSS Bubbles
+        const bg = document.getElementById('bg');
+        for (let i = 0; i < 15; i++) {
+            const b = document.createElement('div');
+            b.className = 'bubble';
+            const size = Math.random() * 60 + 20 + 'px';
+            b.style.width = size; b.style.height = size;
+            b.style.left = Math.random() * 100 + '%';
+            b.style.animationDelay = Math.random() * 20 + 's';
+            bg.appendChild(b);
+        }
+
         const UI = {
             start: async function() {
                 const btn = document.querySelector('#gate button');
                 btn.innerText = "AUTHENTICATING..."; btn.disabled = true;
-                
                 const success = await Client.login();
-                if (success) {
-                    Client.showDashboard();
-                } else {
-                    btn.innerText = "BOOT SYSTEM"; btn.disabled = false;
-                }
+                if (success) { Client.showDashboard(); } 
+                else { btn.innerText = "BOOT SYSTEM"; btn.disabled = false; }
             }
         };
     </script>
