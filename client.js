@@ -34,17 +34,23 @@ const Client = {
     },
 
     showDashboard() {
-        // FORCE HIDE everything from the login gate
-        document.getElementById('gate').style.display = 'none';
-        
-        // SHOW the portal container
+        const gate = document.getElementById('gate');
         const portal = document.getElementById('portal');
-        portal.style.display = 'block';
-        portal.classList.add('animated', 'fadeIn');
         
-        // INITIALIZE DATA
-        this.loadAccounts();
-        this.loadBills();
+        // 1. Trigger the "Slap Up" animation
+        gate.classList.add('gate-exit');
+        
+        // 2. Prepare the Portal
+        portal.style.display = 'block';
+        portal.classList.add('desktop-enter');
+        
+        // 3. Clean up after animation finishes
+        setTimeout(() => {
+            gate.style.display = 'none';
+            // Start data stream
+            this.loadAccounts();
+            this.loadBills();
+        }, 800);
     },
 
     async logout() {
