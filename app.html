@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Arc Void OS | Desktop Environment</title>
+    <title>Arc Void OS | Desktop</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
@@ -17,73 +17,53 @@
             --panel-bg: rgba(10, 10, 15, 0.9);
             --glass-bg: rgba(255, 255, 255, 0.07);
             --neon-cyan: #00f2ff;
-            --gold-leaf: #d4af37;
         }
 
         body, html { 
-            height: 100%; margin: 0; 
-            background: #050505 url('images/bg_1.jpg') no-repeat center center fixed; 
-            background-size: cover;
-            font-family: 'Montserrat', sans-serif;
-            overflow: hidden; 
+            height: 100%; margin: 0; background: #000;
+            font-family: 'Montserrat', sans-serif; overflow: hidden; 
         }
 
-        #desktop {
-            height: calc(100vh - 55px);
-            padding: 30px;
-            display: none; 
-            position: relative;
-            z-index: 5;
+        /* Spinning Nebula Background */
+        .nebula {
+            position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at center, rgba(0, 229, 255, 0.1) 0%, transparent 50%),
+                        url('images/bg_1.jpg') no-repeat center center;
+            background-size: cover; z-index: -1;
+            animation: nebulaSpin 120s linear infinite;
         }
+
+        @keyframes nebulaSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        #desktop { height: calc(100vh - 55px); padding: 30px; display: none; position: relative; z-index: 5; }
 
         .taskbar {
-            position: fixed;
-            bottom: 0; width: 100%; height: 55px;
-            background: var(--panel-bg);
-            backdrop-filter: blur(25px);
+            position: fixed; bottom: 0; width: 100%; height: 55px;
+            background: var(--panel-bg); backdrop-filter: blur(25px);
             border-top: 1px solid rgba(255,255,255,0.1);
-            display: flex; align-items: center;
-            padding: 0 25px; z-index: 10000;
+            display: flex; align-items: center; padding: 0 25px; z-index: 10000;
         }
 
         .system-window {
-            position: relative;
-            background: var(--glass-bg);
-            backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 12px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
-            padding: 25px; color: #fff;
+            position: relative; background: var(--glass-bg); backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6); padding: 25px; color: #fff;
         }
 
         .system-window::before {
-            content: '';
-            position: absolute; inset: -2px;
-            background: conic-gradient(from 0deg, transparent, var(--ring-color, var(--neon-cyan)), transparent 40%);
+            content: ''; position: absolute; inset: -2px;
+            background: conic-gradient(from 0deg, transparent, var(--neon-cyan), transparent 40%);
             border-radius: 14px; z-index: -1;
-            animation: rotateGlow 4s linear infinite;
-            opacity: 0; transition: opacity 0.3s;
+            animation: rotateGlow 4s linear infinite; opacity: 0; transition: opacity 0.3s;
         }
         .system-window:hover::before { opacity: 1; }
 
-        @keyframes rotateGlow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        @keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         #lock-screen {
-            display: none; position: fixed; inset: 0;
-            z-index: 20000; background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(60px);
+            display: none; position: fixed; inset: 0; z-index: 20000;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(60px);
             align-items: center; justify-content: center;
-        }
-
-        .os-start-btn {
-            background: linear-gradient(135deg, var(--neon-cyan), #00a2ff);
-            border: none; border-radius: 4px;
-            color: #000; padding: 6px 18px;
-            font-weight: 800; cursor: pointer;
-            text-transform: uppercase; font-size: 12px;
         }
 
         .mono { font-family: 'Courier New', Courier, monospace; color: var(--neon-cyan); }
@@ -91,29 +71,21 @@
 </head>
 <body>
 
+    <div class="nebula"></div>
+
     <div id="lock-screen">
-        <div class="system-window text-center" style="width: 380px; --ring-color: var(--gold-leaf);">
-            <div class="mb-4">
-                <i class="fa fa-shield fa-4x mb-3 text-warning"></i>
-                <h3 class="mono">SYSTEM_SECURED</h3>
-            </div>
-            <input type="password" id="unlock-pass" class="form-control mb-3 bg-dark text-white border-0 text-center" placeholder="PIN">
+        <div class="system-window text-center" style="width: 380px;">
+            <h3 class="mono mb-4">SYSTEM_LOCKED</h3>
+            <input type="password" id="unlock-pass" class="form-control mb-3 bg-dark text-white text-center" placeholder="PIN">
             <button class="btn btn-primary w-100" onclick="OS.unlock()">UNLOCK SESSION</button>
         </div>
     </div>
 
     <section id="gate" class="h-100 d-flex align-items-center justify-content-center">
         <div class="system-window text-center p-5" style="width: 450px;">
-            <div class="mb-5">
-                <h1 style="letter-spacing: 12px; font-weight: 200; margin: 0;">ARC VOID</h1>
-                <span class="mono" style="font-size: 9px; opacity: 0.6;">KINETIC_OS // BOOT_READY</span>
-            </div>
-            <div class="form-group mb-4">
-                <input type="email" id="email" class="form-control bg-transparent text-white border-secondary" placeholder="USER_ID">
-            </div>
-            <div class="form-group mb-4">
-                <input type="password" id="password" class="form-control bg-transparent text-white border-secondary" placeholder="ACCESS_KEY">
-            </div>
+            <h1 class="mb-5" style="letter-spacing: 12px;">ARC VOID</h1>
+            <input type="email" id="email" class="form-control mb-4 bg-transparent text-white" placeholder="USER_ID">
+            <input type="password" id="password" class="form-control mb-4 bg-transparent text-white" placeholder="ACCESS_KEY">
             <button class="btn btn-outline-info btn-block py-3" onclick="OS.boot()">BOOT SYSTEM</button>
             <div id="login-err" class="mt-3 text-danger mono small"></div>
         </div>
@@ -125,21 +97,19 @@
                 <div class="system-window">
                     <span class="mono">LEDGER_VIEWER.EXE</span>
                     <hr class="bg-secondary">
-                    <div id="grid-accounts" class="mono" style="font-size: 12px;">
-                        > WAITING FOR AUTHENTICATION...
-                    </div>
+                    <div id="grid-accounts" class="mono" style="font-size: 12px;">> WAITING FOR AUTHENTICATION...</div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="taskbar" id="os-panel" style="display: none;">
-        <button class="os-start-btn">ARC</button>
+        <button class="btn btn-info mr-4">ARC</button>
         <div class="flex-grow-1"></div>
         <div class="d-flex align-items-center text-white mono" style="font-size: 13px;">
             <i class="fa fa-lock mx-3" style="cursor: pointer;" onclick="OS.lock()"></i>
             <i class="fa fa-power-off mx-3 text-danger" style="cursor: pointer;" onclick="OS.shutdown()"></i>
-            <span id="os-clock">00:00:00</span>
+            <span id="os-clock" class="ml-3">00:00:00</span>
         </div>
     </div>
 
@@ -150,49 +120,29 @@
         const OS = {
             boot: async function() {
                 const btn = document.querySelector('#gate button');
-                const loginErr = document.getElementById('login-err');
-                
-                // SAFETY CHECK: Ensure Client engine is fully online
-                if (typeof Client === 'undefined') {
-                    loginErr.innerText = "CRITICAL: CLIENT_ENGINE_OFFLINE";
-                    return;
-                }
-
-                btn.innerText = "AUTHENTICATING...";
-                btn.disabled = true;
-
+                btn.innerText = "AUTHENTICATING..."; btn.disabled = true;
                 const success = await Client.login();
-
                 if (success) {
-                    document.getElementById('gate').classList.add('animated', 'fadeOut');
-                    setTimeout(() => {
-                        document.getElementById('gate').style.display = 'none';
-                        document.getElementById('desktop').style.display = 'block';
-                        document.getElementById('os-panel').style.display = 'flex';
-                        this.startClock();
-                    }, 800);
+                    document.getElementById('gate').style.display = 'none';
+                    document.getElementById('desktop').style.display = 'block';
+                    document.getElementById('os-panel').style.display = 'flex';
+                    this.startClock();
                 } else {
-                    loginErr.innerText = "ERROR: INVALID_CREDENTIALS";
-                    btn.innerText = "BOOT SYSTEM";
-                    btn.disabled = false;
+                    document.getElementById('login-err').innerText = "INVALID_CREDENTIALS";
+                    btn.innerText = "BOOT SYSTEM"; btn.disabled = false;
                 }
             },
-
             lock: function() { document.getElementById('lock-screen').style.display = 'flex'; },
-            
             unlock: function() {
                 if(document.getElementById('unlock-pass').value === "1234") {
                     document.getElementById('lock-screen').style.display = 'none';
                     document.getElementById('unlock-pass').value = '';
                 }
             },
-
             shutdown: function() { location.reload(); },
-
             startClock: function() {
                 setInterval(() => {
-                    const el = document.getElementById('os-clock');
-                    if (el) el.innerText = new Date().toLocaleTimeString();
+                    document.getElementById('os-clock').innerText = new Date().toLocaleTimeString();
                 }, 1000);
             }
         };
