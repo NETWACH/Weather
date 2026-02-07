@@ -5,93 +5,174 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:wght@600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:200,300,400,500,600,700,800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="app.css"> <style>
-      /* Landing Page Specific Overrides */
-      .hero-section {
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 20px;
-      }
-      .navbar {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        padding: 20px 50px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        z-index: 1000;
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-      }
-      .feature-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 30px;
-        padding: 100px 50px;
-      }
-      .nav-link {
-        color: var(--muted);
-        margin: 0 20px;
-        font-weight: 500;
-        text-decoration: none;
-        transition: 0.3s;
-      }
-      .nav-link:hover { color: #fff; }
-    </style>
+    <link rel="stylesheet" href="css/animate.css">
+    <link rel="stylesheet" href="css/owl.carousel.min.css">
+    <link rel="stylesheet" href="css/owl.theme.default.min.css">
+    <link rel="stylesheet" href="css/magnific-popup.css">
+    <link rel="stylesheet" href="css/flaticon.css">
+    <link rel="stylesheet" href="css/style.css">
   </head>
   <body>
 
-    <nav class="navbar">
-      <div style="font-family: 'Fraunces'; font-size: 1.5rem; letter-spacing: 2px;">ARC VOID</div>
-      <div>
-        <a href="#features" class="nav-link">Features</a>
-        <a href="contact.html" class="nav-link">Contact</a>
-        <a href="app.html" class="btn-elite" style="text-decoration: none; font-size: 12px; padding: 10px 25px;">
-          OPEN PORTAL <i class="fa fa-rocket" style="margin-left: 8px;"></i>
-        </a>
+    <div class="wrap">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="bg-wrap">
+              <div class="row">
+                <div class="col-md-6 d-flex align-items-center">
+                  <p class="mb-0 phone pl-md-2">
+                    <a href="#" class="mr-2"><span class="fa fa-phone mr-1"></span> +00 1234 567</a> 
+                    <a href="#"><span class="fa fa-paper-plane mr-1"></span> info@arcvoid.com</a>
+                  </p>
+                </div>
+                <div class="col-md-6 d-flex justify-content-md-end">
+                  <div class="social-media">
+                    <p class="mb-0 d-flex">
+                      <a href="#" class="d-flex align-items-center justify-content-center"><span class="fa fa-facebook"><i class="sr-only">Facebook</i></span></a>
+                      <a href="#" class="d-flex align-items-center justify-content-center"><span class="fa fa-twitter"><i class="sr-only">Twitter</i></span></a>
+                      <a href="#" class="d-flex align-items-center justify-content-center"><span class="fa fa-instagram"><i class="sr-only">Instagram</i></span></a>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">Arc Void</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="fa fa-bars"></span> Menu
+        </button>
+        <div class="collapse navbar-collapse" id="ftco-nav">
+          <ul class="navbar-nav m-auto">
+            <li class="nav-item active"><a href="index.html" class="nav-link">Home</a></li>
+            <li class="nav-item"><a href="about.html" class="nav-link">About</a></li>
+            <li class="nav-item"><a href="services.html" class="nav-link">Services</a></li>
+            <li class="nav-item"><a href="contact.html" class="nav-link">Contact</a></li>
+          </ul>
+          <a href="app.html" class="btn btn-primary py-2 px-3 mt-2 mt-lg-0">Open Portal</a>
+        </div>
       </div>
     </nav>
-
-    <section class="hero-section">
-      <div class="login" style="width: min(800px, 100%); animation: floatPortal 10s ease-in-out infinite;">
-        <h1 style="font-family: 'Fraunces'; font-size: 4rem; margin-bottom: 10px; line-height: 1;">Private. Fast. Beautiful.</h1>
-        <p class="muted" style="font-size: 1.2rem; margin-bottom: 40px;">Home billing, reimagined for the modern orbital lifestyle.</p>
-        <div style="display: flex; gap: 20px; justify-content: center;">
-          <a href="app.html" class="btn-elite" style="padding: 18px 40px; font-size: 1rem;">GET STARTED</a>
-          <a href="#features" class="btn-elite" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2);">LEARN MORE</a>
+    <section class="hero-wrap" style="background-image: url('images/bg_1.jpg');" data-stellar-background-ratio="0.5">
+      <div class="overlay"></div>
+      <div class="container">
+        <div class="row no-gutters slider-text align-items-center">
+          <div class="col-md-8 ftco-animate d-flex align-items-end">
+            <div class="text w-100">
+              <h1 class="mb-4">Private. Fast. Beautiful.</h1>
+              <p class="mb-4">Home billing, reimagined for the modern orbital lifestyle.</p>
+              <p><a href="app.html" class="btn btn-primary py-3 px-4">Get Started</a> <a href="#features" class="btn btn-white py-3 px-4">Learn More</a></p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section id="features" class="feature-grid">
-      <div class="acc-box">
-        <i class="fa fa-shield" style="font-size: 2rem; color: var(--accent-emerald); margin-bottom: 20px;"></i>
-        <h3>Secure Ledger</h3>
-        <p class="muted">End-to-end encrypted billing data stored in secure cloud containers.</p>
-      </div>
-      <div class="acc-box">
-        <i class="fa fa-pie-chart" style="font-size: 2rem; color: var(--accent-ruby); margin-bottom: 20px;"></i>
-        <h3>Deep Analytics</h3>
-        <p class="muted">Visual spending breakdowns that help you control your household burn rate.</p>
-      </div>
-      <div class="acc-box">
-        <i class="fa fa-bolt" style="font-size: 2rem; color: var(--accent-google); margin-bottom: 20px;"></i>
-        <h3>Instant Sync</h3>
-        <p class="muted">Real-time updates across all your devices with sub-second latency.</p>
+    <section id="features" class="ftco-section">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 d-flex align-self-stretch ftco-animate">
+            <div class="services-2 text-center">
+              <div class="icon-wrap">
+                <div class="icon d-flex align-items-center justify-content-center">
+                  <span class="fa fa-shield"></span>
+                </div>
+              </div>
+              <div class="media-body">
+                <h3 class="heading">Secure Ledger</h3>
+                <p>End-to-end encrypted billing data stored in secure cloud containers.</p>
+              </div>
+            </div>      
+          </div>
+          <div class="col-md-4 d-flex align-self-stretch ftco-animate">
+            <div class="services-2 text-center">
+              <div class="icon-wrap">
+                <div class="icon d-flex align-items-center justify-content-center">
+                  <span class="fa fa-pie-chart"></span>
+                </div>
+              </div>
+              <div class="media-body">
+                <h3 class="heading">Deep Analytics</h3>
+                <p>Visual spending breakdowns that help you control your household burn rate.</p>
+              </div>
+            </div>      
+          </div>
+          <div class="col-md-4 d-flex align-self-stretch ftco-animate">
+            <div class="services-2 text-center">
+              <div class="icon-wrap">
+                <div class="icon d-flex align-items-center justify-content-center">
+                  <span class="fa fa-bolt"></span>
+                </div>
+              </div>
+              <div class="media-body">
+                <h3 class="heading">Instant Sync</h3>
+                <p>Real-time updates across all your devices with sub-second latency.</p>
+              </div>
+            </div>      
+          </div>
+        </div>
       </div>
     </section>
 
-    <footer style="text-align: center; padding: 50px; border-top: 1px solid rgba(255,255,255,0.1);">
-      <p class="muted" style="font-size: 12px; letter-spacing: 2px;">
-        &copy; <script>document.write(new Date().getFullYear());</script> ARC VOID. SYSTEM STATUS: NOMINAL.
-      </p>
+    <footer class="footer">
+      <div class="container-fluid px-lg-5">
+        <div class="row">
+          <div class="col-md-9 py-5">
+            <div class="row">
+              <div class="col-md-4 mb-md-0 mb-4">
+                <h2 class="footer-heading">About Arc Void</h2>
+                <p>System Status: Nominal. Providing secure orbital billing solutions since 2024.</p>
+              </div>
+              <div class="col-md-8">
+                <div class="row">
+                  <div class="col-md-4">
+                    <h2 class="footer-heading">Services</h2>
+                    <ul class="list-unstyled">
+                      <li><a href="#" class="py-1 d-block">Market Analysis</a></li>
+                      <li><a href="#" class="py-1 d-block">Asset Management</a></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row mt-md-5">
+              <div class="col-md-12">
+                <p class="copyright">Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | Arc Void System</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 py-md-5 py-4 aside-stretch-right pl-lg-5">
+            <h2 class="footer-heading">Free consultation</h2>
+            <form action="#" class="form-consultation">
+              <div class="form-group">
+                <input type="text" class="form-control" placeholder="Your Name">
+              </div>
+              <div class="form-group">
+                <button type="submit" class="form-control submit px-3">Send A Message</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </footer>
 
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery-migrate-3.0.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/jquery.easing.1.3.js"></script>
+    <script src="js/jquery.waypoints.min.js"></script>
+    <script src="js/jquery.stellar.min.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/jquery.magnific-popup.min.js"></script>
+    <script src="js/main.js"></script>
   </body>
 </html>
