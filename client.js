@@ -34,7 +34,7 @@ const Client = {
         document.getElementById('desktop').style.display = 'block';
         document.getElementById('os-panel').style.display = 'flex';
         if (typeof OS !== 'undefined') OS.startClock();
-        this.tab('ledger');
+        this.tab('ledger'); // Load ledger by default on boot
     },
 
     async logout() {
@@ -43,29 +43,32 @@ const Client = {
     },
 
     tab(name) {
+        // Hide all views first
         document.querySelectorAll('.view-section').forEach(s => s.style.display = 'none');
         const target = document.getElementById('view-' + name);
         if (target) target.style.display = 'block';
         
         if (name === 'ledger') this.loadAccounts();
-        if (name === 'bills') this.loadBills();
+        if (name === 'pantry') this.loadBills(); // Using loadBills for Pantry data currently
     },
 
     async loadAccounts() {
         const { data: accs } = await sb.from('accounts').select('*');
         const { data: txs } = await sb.from('transactions').select('*');
         const grid = document.getElementById('grid-accounts');
+        
         if(!accs?.length) { 
-            grid.innerHTML = '<div class="mono">> NO_DATA_STREAMS_ACTIVE</div>'; 
+            grid.innerHTML = '<div class="mono small opacity-50">> NO_ACTIVE_DATA_STREAMS</div>'; 
             return; 
         }
+        
         grid.innerHTML = accs.map(a => {
             const bal = txs.filter(t => t.account_id === a.id).reduce((sum, t) => sum + Number(t.amount), 0);
             return `
                 <div class="col-md-6 mb-3">
-                    <div class="system-window p-3" style="border: 1px solid rgba(192,192,192,0.3);">
+                    <div class="system-window p-3" style="border: 1px solid rgba(192, 192, 192, 0.2);">
                         <div class="mono small opacity-50">${a.name}</div>
-                        <div class="h4 mb-0 text-info">${fmt(bal)}</div>
+                        <div class="h4 mb-0 text-info" style="color: var(--neon-cyan) !important;">${fmt(bal)}</div>
                     </div>
                 </div>`;
         }).join('');
@@ -74,11 +77,13 @@ const Client = {
     async loadBills() {
         const { data: bills } = await sb.from('bills').select('*').order('due_date');
         const grid = document.getElementById('grid-bills');
+        
         if(!grid) return;
         if(!bills?.length) {
-            grid.innerHTML = '<div class="mono small opacity-50">> BUFFER_EMPTY</div>';
+            grid.innerHTML = '<div class="mono small opacity-50">> PANTRY_MANIFEST_EMPTY</div>';
             return;
         }
+
         grid.innerHTML = bills.map(b => {
             const isLate = b.status !== 'PAID' && new Date(b.due_date) < new Date();
             const color = b.status === 'PAID' ? '#00ff88' : (isLate ? '#ff4f4f' : '#00f2ff');
