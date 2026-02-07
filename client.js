@@ -28,21 +28,24 @@ const Client = {
             this.user = data.user;
             return true;
         } catch (e) {
-            if (errDiv) errDiv.textContent = "Connection Failure.";
+            if (errDiv) errDiv.textContent = "AUTH_SYSTEM_OFFLINE";
             return false;
         }
     },
 
     showDashboard() {
+        // CLEAN SWAP: Remove login gate, show portal
         document.getElementById('gate').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('portal').style.display = 'block';
+        
+        // LOAD DATA IMMEDIATELY
         this.loadAccounts();
         this.loadBills();
     },
 
     async logout() {
         await sb.auth.signOut();
-        window.location.href = 'index.html'; 
+        window.location.reload(); 
     },
 
     async loadAccounts() {
@@ -51,7 +54,7 @@ const Client = {
         const grid = document.getElementById('grid-accounts');
         
         if(!accs?.length) { 
-            grid.innerHTML = '<div class="mono small opacity-50">> NO_DATA_FOUND</div>'; 
+            grid.innerHTML = '<div class="mono small opacity-50">> NO_DATA_DETECTED</div>'; 
             return; 
         }
         
@@ -59,9 +62,9 @@ const Client = {
             const bal = txs.filter(t => t.account_id === a.id).reduce((sum, t) => sum + Number(t.amount), 0);
             return `
                 <div class="col-md-6 mb-3">
-                    <div class="data-card">
+                    <div class="portal-card">
                         <div class="mono small opacity-50">${a.name}</div>
-                        <div class="h4 mb-0" style="color: #00f2ff;">${fmt(bal)}</div>
+                        <div class="h4 mb-0 text-cyan">${fmt(bal)}</div>
                     </div>
                 </div>`;
         }).join('');
@@ -72,7 +75,7 @@ const Client = {
         const list = document.getElementById('grid-bills');
         
         if(!bills?.length) {
-            list.innerHTML = '<div class="mono small opacity-50">> NO_OBLIGATIONS</div>';
+            list.innerHTML = '<div class="mono small opacity-50">> QUEUE_EMPTY</div>';
             return;
         }
 
