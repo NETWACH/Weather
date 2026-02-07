@@ -33,21 +33,20 @@ const Client = {
         const gate = document.getElementById('gate');
         const portal = document.getElementById('portal');
         
-        // 1. Fade out the login gate
+        // 1. Fade and Shrink the Gate
         gate.style.opacity = '0';
-        gate.style.transform = 'scale(0.9)'; // Slight push-back effect
+        gate.style.transform = 'scale(0.8) translateY(-50px)';
         gate.style.pointerEvents = 'none';
         
-        // 2. Reveal and fade in the Portal
+        // 2. Reveal the Portal from transparent to solid
         portal.style.display = 'block';
         setTimeout(() => {
             portal.style.opacity = '1';
-            portal.style.transform = 'scale(1)';
             this.loadAccounts();
             this.loadBills();
-        }, 300);
+        }, 400);
 
-        // 3. Remove gate from layout completely after transition
+        // 3. Remove from layout
         setTimeout(() => { gate.style.display = 'none'; }, 1000);
     },
 
