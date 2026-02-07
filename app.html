@@ -4,178 +4,112 @@
     <title>Arc Void OS | Desktop</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    
     <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,600,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="css/animate.css">
     <link rel="stylesheet" href="css/style.css">
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
-        :root {
-            --panel-bg: rgba(10, 10, 15, 0.95);
-            --glass-bg: rgba(255, 255, 255, 0.08);
-            --neon-cyan: #00f2ff;
-            --gold-leaf: #d4af37;
-        }
+        :root { --panel-bg: rgba(10, 10, 15, 0.95); --glass: rgba(255, 255, 255, 0.08); --cyan: #00f2ff; --silver: #c0c0c0; --gold: #d4af37; }
+        body, html { height: 100%; margin: 0; background: #000; font-family: 'Montserrat', sans-serif; overflow: hidden; }
+        
+        .nebula { position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: url('images/bg_1.jpg') no-repeat center; background-size: cover; z-index: -1; animation: spin 180s linear infinite; opacity: 0.4; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        body, html { 
-            height: 100%; margin: 0; background: #000;
-            font-family: 'Montserrat', sans-serif; overflow: hidden; 
-        }
+        /* Sleek Metallic Border for Login */
+        .metallic-gate { border: 1px solid var(--silver); box-shadow: 0 0 20px rgba(192, 192, 192, 0.2); }
 
-        /* Rotating Nebula Background */
-        .nebula {
-            position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle at center, rgba(0, 242, 255, 0.05) 0%, transparent 70%),
-                        url('images/bg_1.jpg') no-repeat center center;
-            background-size: cover; z-index: -1;
-            animation: nebulaRotate 180s linear infinite;
-        }
+        #desktop { height: calc(100vh - 55px); padding: 50px; display: none; position: relative; z-index: 5; }
+        
+        /* Desktop Icons */
+        .icon-grid { display: flex; flex-direction: column; gap: 30px; width: 100px; }
+        .os-icon { text-align: center; cursor: pointer; transition: 0.2s; }
+        .os-icon i { font-size: 40px; color: var(--silver); text-shadow: 0 0 10px var(--cyan); display: block; margin-bottom: 5px; }
+        .os-icon span { font-size: 10px; font-family: monospace; color: #fff; }
+        .os-icon:hover { transform: scale(1.1); }
 
-        @keyframes nebulaRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        #desktop { height: calc(100vh - 55px); padding: 30px; display: none; position: relative; z-index: 5; }
-
-        .taskbar {
-            position: fixed; bottom: 0; width: 100%; height: 55px;
-            background: var(--panel-bg); backdrop-filter: blur(30px);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            display: flex; align-items: center; padding: 0 25px; z-index: 10000;
-        }
-
-        .system-window {
-            position: relative; background: var(--glass-bg); backdrop-filter: blur(40px);
-            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.7); padding: 25px; color: #fff;
-        }
-
-        .system-window::before {
-            content: ''; position: absolute; inset: -2px;
-            background: conic-gradient(from 0deg, transparent, var(--neon-cyan), transparent 40%);
-            border-radius: 14px; z-index: -1;
-            animation: rotateGlow 5s linear infinite; opacity: 0; transition: opacity 0.4s;
-        }
-        .system-window:hover::before { opacity: 1; }
-
-        @keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        #lock-screen {
-            display: none; position: fixed; inset: 0; z-index: 20000;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(80px);
-            align-items: center; justify-content: center;
-        }
-
-        .mono { font-family: 'Courier New', Courier, monospace; color: var(--neon-cyan); }
+        .system-window { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .mono { font-family: 'Courier New', monospace; color: var(--cyan); }
+        .taskbar { position: fixed; bottom: 0; width: 100%; height: 55px; background: var(--panel-bg); backdrop-filter: blur(30px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; padding: 0 25px; z-index: 10000; }
+        
+        #lock-screen { display: none; position: fixed; inset: 0; z-index: 20000; background: rgba(0,0,0,0.6); backdrop-filter: blur(80px); align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
-
     <div class="nebula"></div>
 
     <div id="lock-screen">
-        <div class="system-window text-center" style="width: 380px; --ring-color: var(--gold-leaf);">
-            <div class="mb-4">
-                <i class="fa fa-shield fa-4x mb-3 text-warning"></i>
-                <h3 class="mono">SYSTEM_SECURED</h3>
-            </div>
+        <div class="system-window text-center p-5" style="width: 350px;">
+            <h4 class="mono mb-4">SYSTEM_SECURED</h4>
             <input type="password" id="unlock-pass" class="form-control mb-3 bg-dark text-white border-0 text-center" placeholder="PIN">
-            <button class="btn btn-primary w-100" onclick="OS.unlock()">RESUME_OS</button>
+            <button class="btn btn-primary w-100" onclick="OS.unlock()">UNLOCK</button>
         </div>
     </div>
 
     <section id="gate" class="h-100 d-flex align-items-center justify-content-center">
-        <div class="system-window text-center p-5" style="width: 450px;">
-            <div class="mb-5">
-                <h1 style="letter-spacing: 12px;">ARC VOID</h1>
-                <span class="mono" style="font-size: 9px; opacity: 0.6;">KINETIC_OS // BOOT_READY</span>
-            </div>
-            <input type="email" id="email" class="form-control mb-4 bg-transparent text-white border-secondary" placeholder="USER_ID">
-            <input type="password" id="password" class="form-control mb-4 bg-transparent text-white border-secondary" placeholder="ACCESS_KEY">
-            <button class="btn btn-outline-info btn-block py-3" onclick="OS.boot()">BOOT_SYSTEM</button>
+        <div class="system-window metallic-gate text-center p-5" style="width: 400px;">
+            <h2 class="mb-5" style="letter-spacing: 8px;">ARC VOID</h2>
+            <input type="email" id="email" class="form-control mb-3 bg-transparent text-white border-secondary" placeholder="USER_ID">
+            <input type="password" id="password" class="form-control mb-3 bg-transparent text-white border-secondary" placeholder="PASSKEY">
+            <button class="btn btn-outline-info btn-block py-2" onclick="OS.boot()">BOOT_SYSTEM</button>
             <div id="login-err" class="mt-3 text-danger mono small"></div>
         </div>
     </section>
 
     <div id="desktop">
-        <div class="row">
-            <div class="col-md-8">
-                <div class="system-window">
-                    <span class="mono">LEDGER_ACTIVE.SYS</span>
-                    <hr class="bg-secondary">
-                    <div id="grid-accounts" class="mono" style="font-size: 13px;">> LINKING...</div>
-                </div>
+        <div class="icon-grid">
+            <div class="os-icon" onclick="Client.tab('ledger')">
+                <i class="fa fa-university"></i>
+                <span>LEDGER.EXE</span>
+            </div>
+            <div class="os-icon" onclick="Client.tab('pantry')">
+                <i class="fa fa-archive"></i>
+                <span>PANTRY.SYS</span>
+            </div>
+        </div>
+
+        <div class="system-window mt-5 p-4" style="max-width: 600px;">
+            <div id="view-ledger" class="view-section">
+                <h5 class="mono">ACTIVE_ACCOUNTS</h5>
+                <hr class="bg-secondary">
+                <div id="grid-accounts" class="row"></div>
+            </div>
+            <div id="view-pantry" class="view-section" style="display:none;">
+                <h5 class="mono">PANTRY_INVENTORY</h5>
+                <hr class="bg-secondary">
+                <div id="grid-bills"></div>
             </div>
         </div>
     </div>
 
     <div class="taskbar" id="os-panel" style="display: none;">
-        <button class="btn btn-info btn-sm mr-4">ARC</button>
+        <div class="mono small mr-4">ARC_OS</div>
         <div class="flex-grow-1"></div>
-        <div class="d-flex align-items-center text-white mono" style="font-size: 13px;">
-            <i class="fa fa-lock mx-3" style="cursor: pointer;" title="Lock Session" onclick="OS.lock()"></i>
-            <i class="fa fa-power-off mx-3 text-danger" style="cursor: pointer;" title="Shutdown OS" onclick="OS.shutdown()"></i>
-            <span id="os-clock" class="ml-3">00:00:00</span>
-        </div>
+        <i class="fa fa-lock text-white mx-3" style="cursor:pointer" onclick="OS.lock()"></i>
+        <i class="fa fa-power-off text-danger mx-3" style="cursor:pointer" onclick="OS.shutdown()"></i>
+        <span id="os-clock" class="text-white mono ml-2">00:00:00</span>
     </div>
 
     <script src="js/jquery.min.js"></script>
     <script src="client.js"></script>
-
     <script>
         const OS = {
             boot: async function() {
                 const btn = document.querySelector('#gate button');
-                const loginErr = document.getElementById('login-err');
-                
-                if (typeof Client === 'undefined') {
-                    loginErr.innerText = "CRITICAL: ENGINE_OFFLINE";
-                    return;
-                }
-
                 btn.innerText = "VERIFYING..."; btn.disabled = true;
-
                 const success = await Client.login();
-                if (success) {
-                    document.getElementById('gate').style.display = 'none';
-                    document.getElementById('desktop').style.display = 'block';
-                    document.getElementById('os-panel').style.display = 'flex';
-                    this.startClock();
-                } else {
-                    document.getElementById('login-err').innerText = "ACCESS_DENIED";
-                    btn.innerText = "BOOT_SYSTEM"; btn.disabled = false;
-                }
+                if (success) { Client.launchOS(); }
+                else { btn.innerText = "BOOT_SYSTEM"; btn.disabled = false; }
             },
-
-            lock: function() { 
-                document.getElementById('lock-screen').style.display = 'flex'; 
-            },
-
-            unlock: function() {
-                // Fixed: Explicit check for the PIN input value
-                const pin = document.getElementById('unlock-pass').value;
-                if(pin === "1234") {
+            lock: () => { document.getElementById('lock-screen').style.display = 'flex'; },
+            unlock: () => {
+                if(document.getElementById('unlock-pass').value === "1234") {
                     document.getElementById('lock-screen').style.display = 'none';
                     document.getElementById('unlock-pass').value = '';
-                } else {
-                    alert("ACCESS_DENIED: INVALID_PIN");
                 }
             },
-
-            shutdown: function() {
-                if(confirm("TERMINATE SYSTEM SESSION?")) {
-                    // Triggers the logout and page redirect defined in client.js
-                    Client.logout();
-                }
-            },
-
-            startClock: function() {
-                setInterval(() => {
-                    const el = document.getElementById('os-clock');
-                    if (el) el.innerText = new Date().toLocaleTimeString();
-                }, 1000);
-            }
+            shutdown: () => { if(confirm("SHUTDOWN?")) Client.logout(); },
+            startClock: () => { setInterval(() => { document.getElementById('os-clock').innerText = new Date().toLocaleTimeString(); }, 1000); }
         };
     </script>
 </body>
